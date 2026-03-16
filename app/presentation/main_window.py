@@ -19,6 +19,12 @@ log = logging.getLogger(__name__)
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    HEADER_COMBO_WIDTH = 180
+    HEADER_ROLE_BADGE_WIDTH = 160
+    HEADER_POLICY_BADGE_WIDTH = 250
+    HEADER_ROLE_TEXT_MAX = 20
+    HEADER_POLICY_TEXT_MAX = 30
+
     def __init__(self, app_context: AppContext) -> None:
         super().__init__()
         self.app_context = app_context
@@ -368,15 +374,17 @@ class MainWindow(QtWidgets.QMainWindow):
         active_user_label.setStyleSheet("color: white; font-weight: 500;")
         controls_layout.addWidget(active_user_label)
         self.user_combo = QtWidgets.QComboBox()
-        self.user_combo.setFixedWidth(180)
+        self.user_combo.setFixedWidth(self.HEADER_COMBO_WIDTH)
         self.user_combo.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
         self.user_combo.currentIndexChanged.connect(self._handle_user_change)
         controls_layout.addWidget(self.user_combo)
         self.role_badge = QtWidgets.QLabel()
-        self.role_badge.setFixedWidth(140)
+        self.role_badge.setFixedWidth(self.HEADER_ROLE_BADGE_WIDTH)
+        self.role_badge.setWordWrap(False)
         self.role_badge.setAlignment(QtCore.Qt.AlignCenter)
         self.policy_badge = QtWidgets.QLabel()
-        self.policy_badge.setFixedWidth(220)
+        self.policy_badge.setFixedWidth(self.HEADER_POLICY_BADGE_WIDTH)
+        self.policy_badge.setWordWrap(False)
         self.policy_badge.setAlignment(QtCore.Qt.AlignCenter)
         controls_layout.addWidget(self.role_badge)
         controls_layout.addWidget(self.policy_badge)
@@ -454,15 +462,20 @@ class MainWindow(QtWidgets.QMainWindow):
         current_user = self.app_context.services.session_service.get_current_user()
         roles = ", ".join(self.app_context.services.session_service.get_current_roles()) or "No roles"
         policy = self.app_context.services.governance_service.get_policy()
-        role_text = f"Roles: {self._truncate_text(roles, 20)}"
-        self.role_badge.setText(role_text)
-        self.role_badge.setToolTip(f"Roles: {roles}")
-        self.role_badge.setObjectName("pill")
+        self._set_compact_label(
+            self.role_badge,
+            prefix="Roles:",
+            value=roles,
+            max_length=self.HEADER_ROLE_TEXT_MAX,
+        )
         review_enabled = policy.feature_flags.get("review_cases", True)
         policy_full = f"Read-only: {'on' if policy.read_only_enabled else 'off'} | Review Cases: {'on' if review_enabled else 'off'}"
-        self.policy_badge.setText(self._truncate_text(policy_full, 30))
-        self.policy_badge.setToolTip(policy_full)
-        self.policy_badge.setObjectName("pill")
+        self._set_compact_label(
+            self.policy_badge,
+            prefix="",
+            value=policy_full,
+            max_length=self.HEADER_POLICY_TEXT_MAX,
+        )
         self.policy_badge.setStyleSheet(
             "background: #f0b347; color: #4c3200; border: 1px solid #e0c27a; border-radius: 999px; padding: 8px 12px; font-weight: 700;"
             if policy.read_only_enabled
@@ -676,6 +689,14 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(normalized) <= max_length:
             return normalized
         return f"{normalized[: max_length - 3].rstrip()}..."
+
+    def _set_compact_label(self, label: QtWidgets.QLabel, *, prefix: str, value: str, max_length: int) -> None:
+        visible_value = self._truncate_text(value, max_length)
+        label_text = f"{prefix} {visible_value}".strip()
+        tooltip_text = f"{prefix} {value}".strip()
+        label.setText(label_text)
+        label.setToolTip(tooltip_text)
+        label.setObjectName("pill")
 
     @staticmethod
     def _parse_json_payload(raw_payload: str, *, fallback: dict[str, object]) -> dict[str, object]:

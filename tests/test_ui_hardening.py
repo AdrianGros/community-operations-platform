@@ -87,6 +87,26 @@ def test_header_badges_use_stable_text_constraints_and_tooltips(qtbot, app_conte
     assert window.policy_badge.toolTip().startswith("Read-only:")
 
 
+def test_header_compact_elements_keep_fixed_width_across_all_demo_roles(qtbot, app_context) -> None:
+    window = MainWindow(app_context)
+    qtbot.addWidget(window)
+    window.show()
+
+    combo_width = window.user_combo.width()
+    role_width = window.role_badge.width()
+    policy_width = window.policy_badge.width()
+
+    positions: list[tuple[int, int]] = []
+    for user_name in ("Avery Stone", "Mina Patel", "Jonas Becker"):
+        _select_user_by_name(window, user_name)
+        positions.append((window.role_badge.x(), window.policy_badge.x()))
+        assert window.user_combo.width() == combo_width
+        assert window.role_badge.width() == role_width
+        assert window.policy_badge.width() == policy_width
+
+    assert len(set(positions)) == 1
+
+
 def test_review_case_actions_are_visible_and_stateful(qtbot, app_context) -> None:
     window = MainWindow(app_context)
     qtbot.addWidget(window)
