@@ -221,9 +221,51 @@ class MainWindow(QtWidgets.QMainWindow):
                 border-radius: 10px;
                 padding: 8px 10px;
                 min-width: 160px;
+                color: #16324f;
+            }
+            QComboBox:hover {
+                border: 1px solid #9db7cf;
+                background: #f9fbfd;
+            }
+            QComboBox:focus {
+                border: 2px solid #1f6fb2;
+                padding: 7px 9px;
+                background: #ffffff;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 28px;
+            }
+            QComboBox QAbstractItemView {
+                background: #ffffff;
+                color: #16324f;
+                border: 1px solid #cfdbe6;
+                selection-background-color: #1f6fb2;
+                selection-color: #ffffff;
+                outline: 0;
+                padding: 6px;
+            }
+            QComboBox QAbstractItemView::item {
+                min-height: 28px;
+                padding: 6px 10px;
+                border-radius: 8px;
+                color: #16324f;
+                background: transparent;
+            }
+            QComboBox QAbstractItemView::item:selected {
+                background: #1f6fb2;
+                color: #ffffff;
+            }
+            QComboBox QAbstractItemView::item:hover {
+                background: #e8f1f8;
+                color: #16324f;
             }
             QCheckBox {
                 spacing: 8px;
+                color: #274863;
+            }
+            QCheckBox:disabled {
+                color: #8ea1b3;
             }
             QPushButton {
                 border: none;
@@ -264,6 +306,28 @@ class MainWindow(QtWidgets.QMainWindow):
             QPushButton:disabled {
                 background: #b8c8d8;
                 color: #eef4f8;
+            }
+            QPushButton:focus {
+                border: 2px solid #14324b;
+                padding: 8px 12px;
+            }
+            QTableView::item {
+                padding: 6px 8px;
+            }
+            QTableView::item:selected {
+                background: #dcecf9;
+                color: #14324b;
+            }
+            QTableView::item:hover {
+                background: #f1f7fc;
+            }
+            QTableWidget::item:selected {
+                background: #dcecf9;
+                color: #14324b;
+            }
+            QListWidget::item:hover {
+                background: #eef4fa;
+                color: #14324b;
             }
             """
         )

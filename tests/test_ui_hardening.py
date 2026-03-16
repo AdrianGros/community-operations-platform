@@ -46,6 +46,23 @@ def test_all_core_modules_are_visible_and_reachable(qtbot, app_context) -> None:
         assert any(title in label.text() for label in labels)
 
 
+def test_active_user_dropdown_is_reachable_and_switchable(qtbot, app_context) -> None:
+    window = MainWindow(app_context)
+    qtbot.addWidget(window)
+    window.show()
+
+    combo = window.user_combo
+    assert combo.isVisible()
+    assert combo.count() >= 3
+
+    combo.showPopup()
+    QtWidgets.QApplication.processEvents()
+    assert combo.view().isVisible()
+
+    _select_user_by_name(window, "Mina Patel")
+    assert "Mina Patel" in window.windowTitle()
+
+
 def test_review_case_actions_are_visible_and_stateful(qtbot, app_context) -> None:
     window = MainWindow(app_context)
     qtbot.addWidget(window)
