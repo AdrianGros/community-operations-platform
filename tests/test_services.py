@@ -123,7 +123,7 @@ def test_read_only_blocks_case_updates(app_context) -> None:
     app_context.services.session_service.switch_user(2)
     result = app_context.services.case_service.claim_case(6)
     assert result.ok is False
-    assert "read-only" in result.message
+    assert "nur-lesen" in result.message.lower()
     assert result.code == "read_only"
 
 

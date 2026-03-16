@@ -119,14 +119,14 @@ class GovernanceService:
                     "attempted_review_cases": review_cases_enabled,
                 },
             )
-            return False, "Only admins can change governance settings.", current_policy
+            return False, "Nur Admins duerfen Governance-Einstellungen aendern.", current_policy
 
         if (
             current_policy.read_only_enabled == read_only_enabled
             and current_policy.feature_flags.get("review_cases", True) == review_cases_enabled
         ):
             log.info("Governance policy unchanged for user_id=%s", actor_id)
-            return True, "No governance changes were necessary.", current_policy
+            return True, "Es waren keine Governance-Aenderungen noetig.", current_policy
 
         policy = self.governance_repo.update_policy(
             read_only_enabled=read_only_enabled,
@@ -157,7 +157,7 @@ class GovernanceService:
             policy.read_only_enabled,
             policy.feature_flags.get("review_cases", True),
         )
-        return True, "Governance settings saved.", policy
+        return True, "Governance-Einstellungen gespeichert.", policy
 
 
 class CaseService:
@@ -185,7 +185,7 @@ class CaseService:
             return CaseActionState(
                 case_id=case_id,
                 allowed_actions={},
-                primary_hint="Case not found.",
+                primary_hint="Fall nicht gefunden.",
                 blocker_code="missing",
             )
         actions = (
@@ -207,9 +207,10 @@ class CaseService:
             allowed_actions=allowed,
             primary_hint=(
                 f"Available next steps: {', '.join(available_labels)}."
+                .replace("Available next steps", "Verfuegbare naechste Schritte")
                 if available_labels
                 else blocker[1] if blocker is not None
-                else "No actions available."
+                else "Keine Aktionen verfuegbar."
             ),
             blocker_code=None if blocker is None else blocker[0],
         )
@@ -217,7 +218,7 @@ class CaseService:
     def claim_case(self, case_id: int) -> ActionResult:
         case = self.get_case(case_id)
         if case is None:
-            return ActionResult(False, "Case not found.", code="missing")
+            return ActionResult(False, "Fall nicht gefunden.", code="missing")
         blocked = self._validate_case_action(case, "claim")
         if blocked is not None:
             return self._blocked_result(case, blocked[0], blocked[1], action="claim")
@@ -231,12 +232,12 @@ class CaseService:
         )
         self._audit_case("claimed", updated, {"status": updated.status, "claimed_by": updated.claimed_by})
         log.info("Case claimed case_id=%s actor_user_id=%s", case_id, self.session_service.session_state.current_user_id)
-        return ActionResult(True, "Case claimed.", updated, code="claimed")
+        return ActionResult(True, "Fall uebernommen.", updated, code="claimed")
 
     def unclaim_case(self, case_id: int) -> ActionResult:
         case = self.get_case(case_id)
         if case is None:
-            return ActionResult(False, "Case not found.", code="missing")
+            return ActionResult(False, "Fall nicht gefunden.", code="missing")
         blocked = self._validate_case_action(case, "unclaim")
         if blocked is not None:
             return self._blocked_result(case, blocked[0], blocked[1], action="unclaim")
@@ -254,12 +255,12 @@ class CaseService:
             {"status": updated.status, "released_by": self.session_service.session_state.current_user_id},
         )
         log.info("Case unclaimed case_id=%s actor_user_id=%s", case_id, self.session_service.session_state.current_user_id)
-        return ActionResult(True, "Case returned to the queue.", updated, code="unclaimed")
+        return ActionResult(True, "Fall wieder in die Warteschlange gelegt.", updated, code="unclaimed")
 
     def decide_case(self, case_id: int, decision: str) -> ActionResult:
         case = self.get_case(case_id)
         if case is None:
-            return ActionResult(False, "Case not found.", code="missing")
+            return ActionResult(False, "Fall nicht gefunden.", code="missing")
         blocked = self._validate_case_action(case, decision)
         if blocked is not None:
             return self._blocked_result(case, blocked[0], blocked[1], action=decision)
@@ -268,15 +269,15 @@ class CaseService:
         if decision in {"approved", "rejected"}:
             new_status = CaseStatus.APPROVED.value if decision == "approved" else CaseStatus.REJECTED.value
             reason = (
-                "Approved after role and control review."
+                "Freigegeben nach Rollen- und Kontrollpruefung."
                 if decision == "approved"
-                else "Rejected because supporting rationale remains incomplete."
+                else "Abgelehnt, weil die begruendenden Nachweise noch unvollstaendig sind."
             )
         elif decision == "closed":
             new_status = CaseStatus.CLOSED.value
-            reason = case.decision_reason or "Case closed after review."
+            reason = case.decision_reason or "Fall nach Pruefung geschlossen."
         else:
-            return ActionResult(False, f"Unsupported decision {decision}.", case, code="unsupported")
+            return ActionResult(False, f"Nicht unterstuetzte Entscheidung: {decision}.", case, code="unsupported")
 
         updated = self.review_case_repo.update_case(
             case_id=case_id,
@@ -305,12 +306,17 @@ class CaseService:
             decision,
             self.session_service.session_state.current_user_id,
         )
-        return ActionResult(True, f"Case {updated.status}.", updated, code=updated.status)
+        status_label = {
+            "approved": "freigegeben",
+            "rejected": "abgelehnt",
+            "closed": "geschlossen",
+        }.get(updated.status, updated.status)
+        return ActionResult(True, f"Fall {status_label}.", updated, code=updated.status)
 
     def assign_measure_owner_to_current_user(self, case_id: int) -> ActionResult:
         case = self.get_case(case_id)
         if case is None:
-            return ActionResult(False, "Case not found.", code="missing")
+            return ActionResult(False, "Fall nicht gefunden.", code="missing")
         blocked = self._validate_case_action(case, "assign_measure_owner")
         if blocked is not None:
             return self._blocked_result(case, blocked[0], blocked[1], action="assign_measure_owner")
@@ -323,19 +329,19 @@ class CaseService:
             claimed_at=None if case.claimed_at is None else case.claimed_at.isoformat(),
             decision=case.decision,
             decision_reason=case.decision_reason,
-            evidence_note=case.evidence_note or "Measure owner assigned for remediation tracking.",
+            evidence_note=case.evidence_note or "Massnahmenverantwortung fuer die Nachverfolgung gesetzt.",
         )
         self._audit_case(
             "measure.owner_assigned",
             updated,
             {"measure_owner": updated.measure_owner, "finding_status": updated.finding_status},
         )
-        return ActionResult(True, "Measure owner assigned to the active user.", updated, code="measure_owner_assigned")
+        return ActionResult(True, "Massnahmenverantwortung dem aktiven Nutzer zugewiesen.", updated, code="measure_owner_assigned")
 
     def start_measure(self, case_id: int) -> ActionResult:
         case = self.get_case(case_id)
         if case is None:
-            return ActionResult(False, "Case not found.", code="missing")
+            return ActionResult(False, "Fall nicht gefunden.", code="missing")
         blocked = self._validate_case_action(case, "start_measure")
         if blocked is not None:
             return self._blocked_result(case, blocked[0], blocked[1], action="start_measure")
@@ -351,7 +357,7 @@ class CaseService:
             claimed_at=None if case.claimed_at is None else case.claimed_at.isoformat(),
             decision=case.decision,
             decision_reason=case.decision_reason,
-            evidence_note="Mitigation work started and ownership confirmed.",
+            evidence_note="Massnahme gestartet und Verantwortung bestaetigt.",
         )
         self._audit_case(
             "measure.started",
@@ -362,12 +368,12 @@ class CaseService:
                 "measure_owner": updated.measure_owner,
             },
         )
-        return ActionResult(True, "Mitigation measure is now in progress.", updated, code="measure_started")
+        return ActionResult(True, "Massnahme ist jetzt in Bearbeitung.", updated, code="measure_started")
 
     def progress_finding(self, case_id: int, action: str) -> ActionResult:
         case = self.get_case(case_id)
         if case is None:
-            return ActionResult(False, "Case not found.", code="missing")
+            return ActionResult(False, "Fall nicht gefunden.", code="missing")
         blocked = self._validate_case_action(case, action)
         if blocked is not None:
             return self._blocked_result(case, blocked[0], blocked[1], action=action)
@@ -384,7 +390,7 @@ class CaseService:
                 claimed_at=None if case.claimed_at is None else case.claimed_at.isoformat(),
                 decision=case.decision,
                 decision_reason=case.decision_reason,
-                evidence_note="Mitigation completed; control is now under monitoring.",
+                evidence_note="Massnahme abgeschlossen; Kontrolle wird nun weiter beobachtet.",
             )
             self._audit_case(
                 "finding.mitigated",
@@ -395,7 +401,7 @@ class CaseService:
                     "control_status": updated.control_status,
                 },
             )
-            return ActionResult(True, "Finding marked as mitigated.", updated, code="finding_mitigated")
+            return ActionResult(True, "Abweichung als mitigiert markiert.", updated, code="finding_mitigated")
 
         if action == "accept_risk":
             updated = self.review_case_repo.update_case(
@@ -408,8 +414,8 @@ class CaseService:
                 claimed_by=case.claimed_by,
                 claimed_at=None if case.claimed_at is None else case.claimed_at.isoformat(),
                 decision=case.decision,
-                decision_reason=case.decision_reason or "Residual risk accepted with documented owner.",
-                evidence_note="Residual risk acceptance recorded for this item.",
+                decision_reason=case.decision_reason or "Restrisiko mit dokumentierter Verantwortung akzeptiert.",
+                evidence_note="Restrisiko-Akzeptanz fuer diesen Eintrag dokumentiert.",
             )
             self._audit_case(
                 "risk.accepted",
@@ -421,18 +427,18 @@ class CaseService:
                 },
                 severity="warning",
             )
-            return ActionResult(True, "Residual risk accepted for this item.", updated, code="risk_accepted")
+            return ActionResult(True, "Restrisiko fuer diesen Eintrag akzeptiert.", updated, code="risk_accepted")
 
-        return ActionResult(False, f"Unsupported progression action {action}.", case, code="unsupported")
+        return ActionResult(False, f"Nicht unterstuetzte Fortschrittsaktion: {action}.", case, code="unsupported")
 
     def _policy_blocker(self) -> tuple[str, str] | None:
         policy = self.governance_service.get_policy()
         if policy.read_only_enabled:
-            return "read_only", "Changes are blocked because read-only mode is enabled."
+            return "read_only", "Aenderungen sind blockiert, weil der Nur-Lesen-Modus aktiv ist."
         if not policy.feature_flags.get("review_cases", True):
-            return "feature_disabled", "Review Cases are disabled by governance policy."
+            return "feature_disabled", "Prueffaelle sind durch die Governance-Richtlinie deaktiviert."
         if self.session_service.effective_tier() < ROLE_TIERS[RoleCode.REVIEWER]:
-            return "role_insufficient", "Your current role cannot change review cases."
+            return "role_insufficient", "Deine aktuelle Rolle darf Prueffaelle nicht veraendern."
         return None
 
     def _validate_case_action(self, case: ReviewCase, action: str) -> tuple[str, str] | None:
@@ -445,62 +451,62 @@ class CaseService:
 
         if action == "claim":
             if case.status != CaseStatus.OPEN.value:
-                return "invalid_status", "Only open cases can be claimed."
+                return "invalid_status", "Nur offene Faelle koennen uebernommen werden."
             if case.claimed_by is not None:
-                return "already_claimed", "This case already has an owner."
+                return "already_claimed", "Dieser Fall hat bereits eine verantwortliche Person."
             return None
 
         if action == "unclaim":
             if case.status != CaseStatus.CLAIMED.value:
-                return "invalid_status", "Only claimed cases can be released."
+                return "invalid_status", "Nur uebernommene Faelle koennen freigegeben werden."
             if case.claimed_by != current_user_id and not is_admin:
-                return "claim_owner_required", "Only the current owner or an admin can unclaim this case."
+                return "claim_owner_required", "Nur die aktuell verantwortliche Person oder ein Admin darf diesen Fall freigeben."
             return None
 
         if action in {"approved", "rejected"}:
             if case.status != CaseStatus.CLAIMED.value:
-                return "claim_required", "Claim the case before approving or rejecting it."
+                return "claim_required", "Uebernimm den Fall, bevor du ihn freigibst oder ablehnst."
             if case.claimed_by != current_user_id and not is_admin:
-                return "claim_owner_required", "Only the claim owner or an admin can decide this case."
+                return "claim_owner_required", "Nur die verantwortliche Person oder ein Admin darf ueber diesen Fall entscheiden."
             return None
 
         if action == "closed":
             if case.status not in {CaseStatus.APPROVED.value, CaseStatus.REJECTED.value}:
-                return "decision_required", "Only approved or rejected cases can be closed."
+                return "decision_required", "Nur freigegebene oder abgelehnte Faelle koennen geschlossen werden."
             if case.finding_status not in {FindingStatus.MITIGATED.value, FindingStatus.ACCEPTED.value}:
-                return "finding_resolution_required", "Mitigate the finding or record a residual-risk acceptance before closing."
+                return "finding_resolution_required", "Behebe die Abweichung oder dokumentiere eine Restrisiko-Akzeptanz, bevor du schliesst."
             if case.claimed_by != current_user_id and not is_admin:
-                return "claim_owner_required", "Only the claim owner or an admin can close this case."
+                return "claim_owner_required", "Nur die verantwortliche Person oder ein Admin darf diesen Fall schliessen."
             return None
 
         if action == "assign_measure_owner":
             if case.status == CaseStatus.CLOSED.value:
-                return "invalid_status", "Closed cases do not need a new measure owner."
+                return "invalid_status", "Geschlossene Faelle benoetigen keine neue Massnahmenverantwortung."
             return None
 
         if action == "start_measure":
             if case.status == CaseStatus.CLOSED.value:
-                return "invalid_status", "Closed cases cannot start new mitigation work."
+                return "invalid_status", "Geschlossene Faelle koennen keine neue Massnahme starten."
             if case.finding_status not in {FindingStatus.IDENTIFIED.value, FindingStatus.IN_PROGRESS.value}:
-                return "invalid_finding_state", "Only identified or active findings can start mitigation work."
+                return "invalid_finding_state", "Nur identifizierte oder aktive Abweichungen koennen bearbeitet werden."
             return None
 
         if action == "mitigate":
             if case.status == CaseStatus.CLOSED.value:
-                return "invalid_status", "Closed cases cannot be mitigated again."
+                return "invalid_status", "Geschlossene Faelle koennen nicht erneut mitigiert werden."
             if case.measure_owner is None:
-                return "measure_owner_required", "Assign a measure owner before marking the finding as mitigated."
+                return "measure_owner_required", "Setze zuerst eine Massnahmenverantwortung, bevor du die Abweichung als mitigiert markierst."
             if case.measure_status not in {MeasureStatus.IN_PROGRESS.value, MeasureStatus.PLANNED.value}:
-                return "measure_progress_required", "Mitigation can only complete after a planned or active measure exists."
+                return "measure_progress_required", "Eine Mitigation kann erst abgeschlossen werden, wenn eine geplante oder laufende Massnahme existiert."
             return None
 
         if action == "accept_risk":
             if not is_admin:
-                return "admin_required", "Only admins can record a residual-risk acceptance."
+                return "admin_required", "Nur Admins duerfen eine Restrisiko-Akzeptanz dokumentieren."
             if case.status == CaseStatus.CLOSED.value:
-                return "invalid_status", "Closed cases cannot accept new residual risk."
+                return "invalid_status", "Geschlossene Faelle koennen kein neues Restrisiko akzeptieren."
             if case.finding_status in {FindingStatus.MITIGATED.value, FindingStatus.CLOSED.value}:
-                return "invalid_finding_state", "Mitigated or closed findings do not need residual-risk acceptance."
+                return "invalid_finding_state", "Mitigierte oder geschlossene Abweichungen benoetigen keine Restrisiko-Akzeptanz."
             return None
 
         return "unsupported", f"Unsupported action: {action}"
@@ -515,15 +521,15 @@ class CaseService:
     @staticmethod
     def _action_labels() -> dict[str, str]:
         return {
-            "claim": "Claim",
-            "unclaim": "Unclaim",
-            "approved": "Approve",
-            "rejected": "Reject",
-            "closed": "Close",
-            "assign_measure_owner": "Assign Owner",
-            "start_measure": "Start Measure",
-            "mitigate": "Mark Mitigated",
-            "accept_risk": "Accept Risk",
+            "claim": "Uebernehmen",
+            "unclaim": "Freigeben",
+            "approved": "Freigeben",
+            "rejected": "Ablehnen",
+            "closed": "Schliessen",
+            "assign_measure_owner": "Owner zuweisen",
+            "start_measure": "Massnahme starten",
+            "mitigate": "Als mitigiert markieren",
+            "accept_risk": "Restrisiko akzeptieren",
         }
 
     def _blocked_result(self, case: ReviewCase, code: str, message: str, *, action: str) -> ActionResult:

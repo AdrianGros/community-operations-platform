@@ -18,7 +18,7 @@ def main() -> int:
     runtime_cache.mkdir(parents=True, exist_ok=True)
     os.environ.setdefault("XDG_CACHE_HOME", str(runtime_cache))
     qt_app = QtWidgets.QApplication(sys.argv)
-    qt_app.setApplicationName("Governance Showcase App")
+    qt_app.setApplicationName("Governance-Demo-App")
     qt_app.setOrganizationName("CommunityOperationsPlatform")
     try:
         app_context, conn = create_app_context()
@@ -26,8 +26,8 @@ def main() -> int:
         log.exception("Application startup failed")
         QtWidgets.QMessageBox.critical(
             None,
-            "Governance Showcase App",
-            f"Startup failed.\n\n{exc}\n\nCheck the local log file in the var directory for details.",
+            "Governance-Demo-App",
+            f"Start fehlgeschlagen.\n\n{exc}\n\nPruefe die lokale Logdatei im Ordner var fuer Details.",
         )
         return 1
     window = MainWindow(app_context)

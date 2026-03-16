@@ -7,7 +7,7 @@ from PySide6.QtGui import QColor, QFont
 
 
 class CaseTableModel(QtCore.QAbstractTableModel):
-    HEADERS = ("Title", "Risk", "Finding", "Measure", "Owner", "Updated")
+    HEADERS = ("Titel", "Risiko", "Abweichung", "Massnahme", "Owner", "Aktualisiert")
 
     def __init__(self) -> None:
         super().__init__()
@@ -37,24 +37,24 @@ class CaseTableModel(QtCore.QAbstractTableModel):
             value = str(item.get(key, ""))
             if key == "risk_level":
                 return {
-                    "High": QColor("#9f2d2d"),
-                    "Medium": QColor("#9a5a00"),
-                    "Low": QColor("#25683c"),
+                    "Hoch": QColor("#9f2d2d"),
+                    "Mittel": QColor("#9a5a00"),
+                    "Niedrig": QColor("#25683c"),
                 }.get(value)
             if key == "finding_status":
                 return {
-                    "Identified": QColor("#8a4b00"),
-                    "In Progress": QColor("#1f5f99"),
-                    "Mitigated": QColor("#25683c"),
-                    "Accepted": QColor("#7b4bb3"),
-                    "Closed": QColor("#5d7185"),
+                    "Identifiziert": QColor("#8a4b00"),
+                    "In Bearbeitung": QColor("#1f5f99"),
+                    "Mitigiert": QColor("#25683c"),
+                    "Akzeptiert": QColor("#7b4bb3"),
+                    "Geschlossen": QColor("#5d7185"),
                 }.get(value)
             if key == "measure_status":
                 return {
-                    "Planned": QColor("#8a4b00"),
-                    "In Progress": QColor("#1f5f99"),
-                    "Completed": QColor("#25683c"),
-                    "Accepted": QColor("#7b4bb3"),
+                    "Geplant": QColor("#8a4b00"),
+                    "In Bearbeitung": QColor("#1f5f99"),
+                    "Abgeschlossen": QColor("#25683c"),
+                    "Akzeptiert": QColor("#7b4bb3"),
                 }.get(value)
         if role == QtCore.Qt.FontRole:
             key = keys[index.column()]
@@ -77,7 +77,7 @@ class CaseTableModel(QtCore.QAbstractTableModel):
 
 
 class AuditTableModel(QtCore.QAbstractTableModel):
-    HEADERS = ("Time", "Severity", "Actor", "Action", "Entity")
+    HEADERS = ("Zeit", "Schweregrad", "Akteur", "Aktion", "Objekt")
 
     def __init__(self) -> None:
         super().__init__()

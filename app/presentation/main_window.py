@@ -24,12 +24,46 @@ class MainWindow(QtWidgets.QMainWindow):
     HEADER_POLICY_BADGE_WIDTH = 250
     HEADER_ROLE_TEXT_MAX = 20
     HEADER_POLICY_TEXT_MAX = 30
+    DISPLAY_MAPS = {
+        "risk_level": {"High": "Hoch", "Medium": "Mittel", "Low": "Niedrig"},
+        "case_status": {
+            "Open": "Offen",
+            "Claimed": "Uebernommen",
+            "Approved": "Freigegeben",
+            "Rejected": "Abgelehnt",
+            "Closed": "Geschlossen",
+        },
+        "finding_status": {
+            "Identified": "Identifiziert",
+            "In Progress": "In Bearbeitung",
+            "Mitigated": "Mitigiert",
+            "Accepted": "Akzeptiert",
+            "Closed": "Geschlossen",
+        },
+        "measure_status": {
+            "Planned": "Geplant",
+            "In Progress": "In Bearbeitung",
+            "Completed": "Abgeschlossen",
+            "Accepted": "Akzeptiert",
+        },
+        "control_status": {
+            "Needs Attention": "Aufmerksamkeit noetig",
+            "Partially Effective": "Teilweise wirksam",
+            "Monitored": "Unter Beobachtung",
+            "Effective": "Wirksam",
+        },
+        "case_kind": {
+            "Finding": "Abweichung",
+            "Risk": "Risiko",
+            "Control Review": "Kontrollpruefung",
+        },
+    }
 
     def __init__(self, app_context: AppContext) -> None:
         super().__init__()
         self.app_context = app_context
         self.settings = QSettings("CommunityOperationsPlatform", "GovernanceShowcase")
-        self.setWindowTitle("Governance Showcase App")
+        self.setWindowTitle("Governance-Demo-App")
         self.resize(1320, 820)
         self.setMinimumSize(1120, 720)
         self.setStyleSheet(
@@ -356,10 +390,10 @@ class MainWindow(QtWidgets.QMainWindow):
         header_layout.setContentsMargins(18, 16, 18, 16)
         header_layout.setSpacing(18)
         title_layout = QtWidgets.QVBoxLayout()
-        title = QtWidgets.QLabel("Governance Showcase App")
+        title = QtWidgets.QLabel("Governance-Demo-App")
         title.setObjectName("appTitle")
         subtitle = QtWidgets.QLabel(
-            "Controlled processing, review accountability, mitigation tracking, and runtime health in one local desktop tool."
+            "Kontrollierte Bearbeitung, klare Verantwortlichkeit, Massnahmenverfolgung und Laufzeitstatus in einem lokalen Desktop-Werkzeug."
         )
         subtitle.setWordWrap(True)
         subtitle.setObjectName("appSubtitle")
@@ -370,7 +404,7 @@ class MainWindow(QtWidgets.QMainWindow):
         controls_layout = QtWidgets.QHBoxLayout()
         controls_layout.setSpacing(10)
         controls_layout.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-        active_user_label = QtWidgets.QLabel("Active user")
+        active_user_label = QtWidgets.QLabel("Aktiver Nutzer")
         active_user_label.setStyleSheet("color: white; font-weight: 500;")
         controls_layout.addWidget(active_user_label)
         self.user_combo = QtWidgets.QComboBox()
@@ -395,11 +429,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.nav_list = QtWidgets.QListWidget()
         self.nav_list.addItems(
             [
-                "Dashboard / Home",
-                "Review Cases",
-                "Governance Console",
-                "Audit & Evidence",
-                "Health & Change Status",
+                "Uebersicht",
+                "Prueffaelle",
+                "Governance-Konsole",
+                "Audit & Nachweise",
+                "Health & Aenderungsstatus",
             ]
         )
         self.nav_list.currentRowChanged.connect(self._handle_nav_change)
@@ -460,16 +494,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _refresh_header(self) -> None:
         current_user = self.app_context.services.session_service.get_current_user()
-        roles = ", ".join(self.app_context.services.session_service.get_current_roles()) or "No roles"
+        roles = ", ".join(self.app_context.services.session_service.get_current_roles()) or "Keine Rollen"
         policy = self.app_context.services.governance_service.get_policy()
         self._set_compact_label(
             self.role_badge,
-            prefix="Roles:",
+            prefix="Rollen:",
             value=roles,
             max_length=self.HEADER_ROLE_TEXT_MAX,
         )
         review_enabled = policy.feature_flags.get("review_cases", True)
-        policy_full = f"Read-only: {'on' if policy.read_only_enabled else 'off'} | Review Cases: {'on' if review_enabled else 'off'}"
+        policy_full = f"Nur Lesen: {'an' if policy.read_only_enabled else 'aus'} | Prueffaelle: {'an' if review_enabled else 'aus'}"
         self._set_compact_label(
             self.policy_badge,
             prefix="",
@@ -481,7 +515,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if policy.read_only_enabled
             else "background: #dff2e5; color: #25683c; border: 1px solid #b7dbbf; border-radius: 999px; padding: 8px 12px; font-weight: 700;"
         )
-        self.setWindowTitle(f"Governance Showcase App - {current_user.display_name}")
+        self.setWindowTitle(f"Governance-Demo-App - {current_user.display_name}")
 
     def _refresh_dashboard(self) -> None:
         snapshot = self.app_context.services.dashboard_service.get_snapshot()
@@ -495,22 +529,22 @@ class MainWindow(QtWidgets.QMainWindow):
             {
                 "id": case.id,
                 "title": case.title,
-                "risk_level": case.risk_level,
-                "finding_status": case.finding_status.replace("_", " ").title(),
-                "measure_status": case.measure_status.replace("_", " ").title(),
-                "measure_owner_name": users.get(case.measure_owner, "Unassigned") if case.measure_owner is not None else "Unassigned",
+                "risk_level": self._display_label("risk_level", case.risk_level),
+                "finding_status": self._display_label("finding_status", case.finding_status.replace("_", " ").title()),
+                "measure_status": self._display_label("measure_status", case.measure_status.replace("_", " ").title()),
+                "measure_owner_name": users.get(case.measure_owner, "Nicht zugewiesen") if case.measure_owner is not None else "Nicht zugewiesen",
                 "updated_at": case.updated_at.strftime("%Y-%m-%d %H:%M"),
             }
             for case in cases
         ]
         banner = (
-            "Use this queue to review findings, track mitigation work, and close controlled items. "
-            f"Read-only is {'enabled' if policy.read_only_enabled else 'disabled'}, "
-            f"Review Cases are {'enabled' if policy.feature_flags.get('review_cases', True) else 'disabled'}."
+            "Nutze diese Liste, um Abweichungen zu pruefen, Massnahmen nachzuverfolgen und kontrolliert zu schliessen. "
+            f"Nur-Lesen ist {'aktiv' if policy.read_only_enabled else 'inaktiv'}, "
+            f"Prueffaelle sind {'aktiv' if policy.feature_flags.get('review_cases', True) else 'inaktiv'}."
         )
         self.review_cases_view.refresh_case_list(rows, banner)
         if not cases:
-            self.review_cases_view.clear_case_detail("No cases are available in the local store yet.")
+            self.review_cases_view.clear_case_detail("Im lokalen Datenbestand sind derzeit keine Faelle vorhanden.")
             return
         selected_case = selected_case_id or self.review_cases_view.current_case_id or cases[0].id
         if self.app_context.services.case_service.get_case(selected_case) is None:
@@ -555,15 +589,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def _refresh_health(self) -> None:
         migration = self.app_context.services.health_service.get_migration_status()
         rows = self.app_context.services.health_service.list_results(limit=10)
-        summary = rows[0].message if rows else "No health checks recorded yet."
+        summary = rows[0].message if rows else "Noch keine Health-Pruefungen vorhanden."
         migration_text = (
             f"Schema version: <b>{migration.current_version}</b> | "
-            f"Migrations: <b>{migration.migration_count}</b> | "
-            f"Tables: <b>{migration.actual_table_count}/{migration.expected_table_count}</b> | "
-            f"Schema OK: <b>{'yes' if migration.schema_ok else 'no'}</b>"
+            f"Migrationen: <b>{migration.migration_count}</b> | "
+            f"Tabellen: <b>{migration.actual_table_count}/{migration.expected_table_count}</b> | "
+            f"Schema OK: <b>{'ja' if migration.schema_ok else 'nein'}</b>"
         )
         if migration.missing_items:
-            migration_text += f"<br>Missing items: <b>{', '.join(migration.missing_items)}</b>"
+            migration_text += f"<br>Fehlende Elemente: <b>{', '.join(migration.missing_items)}</b>"
         history = [
             f"{row.measured_at.strftime('%Y-%m-%d %H:%M')} | {'OK' if row.ok else 'WARN'} | {row.message}"
             for row in rows
@@ -575,7 +609,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 detail_lines.append(
                     f"{'OK' if check.get('ok') else 'WARN'} | {check.get('name')} | {check.get('detail')}"
                 )
-        details_text = "<br>".join(detail_lines) if detail_lines else "No detailed checks recorded yet."
+        details_text = "<br>".join(detail_lines) if detail_lines else "Noch keine detaillierten Pruefergebnisse vorhanden."
         self.health_view.refresh(
             migration_text=migration_text,
             summary_text=summary,
@@ -592,18 +626,20 @@ class MainWindow(QtWidgets.QMainWindow):
             "id": case.id,
             "title": case.title,
             "summary": case.summary,
-            "status": case.status.title(),
-            "case_kind": case.case_kind.replace("_", " ").title(),
-            "risk_level": case.risk_level,
-            "finding_status": case.finding_status.replace("_", " ").title(),
-            "control_status": case.control_status.replace("_", " ").title(),
+            "status": self._display_label("case_status", case.status.title()),
+            "status_tone": case.status,
+            "case_kind": self._display_label("case_kind", case.case_kind.replace("_", " ").title()),
+            "risk_level": self._display_label("risk_level", case.risk_level),
+            "risk_tone": case.risk_level,
+            "finding_status": self._display_label("finding_status", case.finding_status.replace("_", " ").title()),
+            "control_status": self._display_label("control_status", case.control_status.replace("_", " ").title()),
             "measure_title": case.measure_title,
-            "measure_status": case.measure_status.replace("_", " ").title(),
-            "measure_owner_name": users.get(case.measure_owner, "Unassigned") if case.measure_owner is not None else "Unassigned",
+            "measure_status": self._display_label("measure_status", case.measure_status.replace("_", " ").title()),
+            "measure_owner_name": users.get(case.measure_owner, "Nicht zugewiesen") if case.measure_owner is not None else "Nicht zugewiesen",
             "due_at": case.due_at.strftime("%Y-%m-%d") if case.due_at is not None else "-",
             "evidence_note": case.evidence_note or "-",
             "priority": case.priority,
-            "claimed_by_name": users.get(case.claimed_by, "Unclaimed") if case.claimed_by is not None else "Unclaimed",
+            "claimed_by_name": users.get(case.claimed_by, "Nicht uebernommen") if case.claimed_by is not None else "Nicht uebernommen",
             "decision": case.decision or "-",
             "decision_reason": case.decision_reason or "-",
             "updated_at": case.updated_at.strftime("%Y-%m-%d %H:%M"),
@@ -629,8 +665,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 result = self.app_context.services.case_service.decide_case(case_id, action)
         except Exception:
             log.exception("Case action failed action=%s case_id=%s", action, case_id)
-            self.review_cases_view.show_feedback("The action failed. See log for details.", ok=False)
-            self.statusBar().showMessage("Case action failed. See log for details.", 5000)
+            self.review_cases_view.show_feedback("Die Aktion ist fehlgeschlagen. Details stehen im Log.", ok=False)
+            self.statusBar().showMessage("Aktion fehlgeschlagen. Details stehen im Log.", 5000)
             return
         self.review_cases_view.show_feedback(result.message, ok=result.ok)
         self.refresh_all()
@@ -647,8 +683,8 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         except Exception:
             log.exception("Governance save failed")
-            self.governance_view.show_feedback("Governance update failed. See log for details.", ok=False)
-            self.statusBar().showMessage("Governance update failed. See log for details.", 5000)
+            self.governance_view.show_feedback("Governance-Aenderung fehlgeschlagen. Details stehen im Log.", ok=False)
+            self.statusBar().showMessage("Governance-Aenderung fehlgeschlagen. Details stehen im Log.", 5000)
             return
         self.governance_view.show_feedback(message, ok=ok)
         self.refresh_all()
@@ -658,9 +694,9 @@ class MainWindow(QtWidgets.QMainWindow):
             result = self.app_context.services.health_service.run_health_check()
         except Exception:
             log.exception("Health check failed")
-            self.statusBar().showMessage("Health check failed. See log for details.", 5000)
+            self.statusBar().showMessage("Health-Pruefung fehlgeschlagen. Details stehen im Log.", 5000)
             return
-        self.statusBar().showMessage(f"Health check recorded: {'OK' if result.ok else 'WARN'}", 4000)
+        self.statusBar().showMessage(f"Health-Pruefung gespeichert: {'OK' if result.ok else 'WARN'}", 4000)
         self.refresh_all()
 
     def _handle_nav_change(self, index: int) -> None:
@@ -697,6 +733,10 @@ class MainWindow(QtWidgets.QMainWindow):
         label.setText(label_text)
         label.setToolTip(tooltip_text)
         label.setObjectName("pill")
+
+    @classmethod
+    def _display_label(cls, mapping_name: str, value: str) -> str:
+        return cls.DISPLAY_MAPS.get(mapping_name, {}).get(value, value)
 
     @staticmethod
     def _parse_json_payload(raw_payload: str, *, fallback: dict[str, object]) -> dict[str, object]:

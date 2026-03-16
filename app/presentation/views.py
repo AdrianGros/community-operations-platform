@@ -36,8 +36,8 @@ class DashboardView(QtWidgets.QWidget):
         super().__init__()
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(18)
-        layout.addWidget(_section_title("Dashboard"))
-        layout.addWidget(_section_caption("A compact overview of workload, governance state, and runtime health."))
+        layout.addWidget(_section_title("Uebersicht"))
+        layout.addWidget(_section_caption("Kompakter Ueberblick ueber Arbeitslast, Governance-Zustand und Laufzeitstatus."))
 
         hero_card = _card()
         hero_layout = QtWidgets.QVBoxLayout(hero_card)
@@ -54,11 +54,11 @@ class DashboardView(QtWidgets.QWidget):
         layout.addLayout(self.cards_layout)
         self.cards: dict[str, QtWidgets.QLabel] = {}
         for key, title in [
-            ("open_cases", "Open Cases"),
-            ("open_findings", "Open Findings"),
-            ("overdue_measures", "Overdue Measures"),
-            ("accepted_risks", "Accepted Risks"),
-            ("closed_cases", "Closed"),
+            ("open_cases", "Offene Faelle"),
+            ("open_findings", "Offene Abweichungen"),
+            ("overdue_measures", "Ueberfaellige Massnahmen"),
+            ("accepted_risks", "Akzeptierte Restrisiken"),
+            ("closed_cases", "Geschlossen"),
         ]:
             frame = _card()
             frame.setObjectName("metricCard")
@@ -92,7 +92,7 @@ class DashboardView(QtWidgets.QWidget):
         audit_card = _card()
         audit_layout = QtWidgets.QVBoxLayout(audit_card)
         audit_layout.setContentsMargins(16, 16, 16, 16)
-        audit_layout.addWidget(_section_caption("Recent audit highlights"))
+        audit_layout.addWidget(_section_caption("Letzte Audit-Ereignisse"))
         self.recent_audit_list = QtWidgets.QListWidget()
         self.recent_audit_list.setMaximumHeight(180)
         audit_layout.addWidget(self.recent_audit_list, 1)
@@ -100,30 +100,30 @@ class DashboardView(QtWidgets.QWidget):
 
     def refresh(self, snapshot: dict[str, object]) -> None:
         user = snapshot["current_user"]
-        roles = ", ".join(snapshot["current_roles"]) or "No roles"
+        roles = ", ".join(snapshot["current_roles"]) or "Keine Rollen"
         self.hero_label.setText(
-            f"Active demo user: <b>{user.display_name}</b> | Roles: <b>{roles}</b>. "
-            "This desktop tool highlights controlled processing, role responsibility, auditability, and runtime health."
+            f"Aktiver Demo-Nutzer: <b>{user.display_name}</b> | Rollen: <b>{roles}</b>. "
+            "Dieses Desktop-Werkzeug zeigt kontrollierte Bearbeitung, klare Verantwortlichkeit, Auditierbarkeit und Laufzeitstatus."
         )
         for key, label in self.cards.items():
             label.setText(str(snapshot[key]))
         policy = snapshot["policy"]
         review_cases_enabled = policy.feature_flags.get("review_cases", True)
         self.policy_label.setText(
-            f"Governance mode: read_only=<b>{'on' if policy.read_only_enabled else 'off'}</b>, "
-            f"review_cases=<b>{'enabled' if review_cases_enabled else 'disabled'}</b>."
+            f"Governance-Modus: nur_lesen=<b>{'an' if policy.read_only_enabled else 'aus'}</b>, "
+            f"prueffaelle=<b>{'aktiv' if review_cases_enabled else 'inaktiv'}</b>."
         )
         self.blocked_label.setText(
-            f"Recent blocked actions: <b>{snapshot['recent_blocked_count']}</b>. "
-            f"Open findings: <b>{snapshot['open_findings']}</b>, overdue measures: <b>{snapshot['overdue_measures']}</b>."
+            f"Zuletzt blockierte Aktionen: <b>{snapshot['recent_blocked_count']}</b>. "
+            f"Offene Abweichungen: <b>{snapshot['open_findings']}</b>, ueberfaellige Massnahmen: <b>{snapshot['overdue_measures']}</b>."
         )
         latest_health = snapshot["latest_health"]
         if latest_health is None:
-            self.health_label.setText("Health: no snapshot recorded yet.")
+            self.health_label.setText("Health: Noch kein Snapshot vorhanden.")
         else:
-            tone = "healthy" if latest_health.ok else "attention needed"
+            tone = "stabil" if latest_health.ok else "Aufmerksamkeit noetig"
             self.health_label.setText(
-                f"Latest health snapshot: <b>{tone}</b> at {latest_health.measured_at.strftime('%Y-%m-%d %H:%M')}."
+                f"Letzter Health-Snapshot: <b>{tone}</b> um {latest_health.measured_at.strftime('%Y-%m-%d %H:%M')}."
             )
         self.recent_audit_list.clear()
         for audit in snapshot["recent_audits"]:
@@ -142,8 +142,8 @@ class ReviewCasesView(QtWidgets.QWidget):
         layout.setSpacing(18)
 
         left = QtWidgets.QVBoxLayout()
-        left.addWidget(_section_title("Review Cases"))
-        left.addWidget(_section_caption("Work through findings, mitigation actions, and controlled closure decisions."))
+        left.addWidget(_section_title("Prueffaelle"))
+        left.addWidget(_section_caption("Bearbeite Abweichungen, verfolge Massnahmen und schliesse Faelle kontrolliert ab."))
         self.banner = QtWidgets.QLabel()
         self.banner.setWordWrap(True)
         self.banner.setObjectName("calloutInfo")
@@ -174,9 +174,9 @@ class ReviewCasesView(QtWidgets.QWidget):
         detail_layout = QtWidgets.QVBoxLayout(detail_frame)
         detail_layout.setContentsMargins(16, 16, 16, 16)
         detail_layout.setSpacing(12)
-        detail_layout.addWidget(_section_title("Case Detail"))
-        detail_layout.addWidget(_section_caption("The selected case is broken into status, ownership, and evidence context."))
-        self.detail_title = QtWidgets.QLabel("Select a case")
+        detail_layout.addWidget(_section_title("Falldetail"))
+        detail_layout.addWidget(_section_caption("Der ausgewaehlte Fall ist in Status, Verantwortlichkeit und Nachweiskontext gegliedert."))
+        self.detail_title = QtWidgets.QLabel("Fall auswaehlen")
         self.detail_title.setObjectName("detailTitle")
         self.detail_status_pill = _pill_label()
         self.detail_risk_pill = _pill_label()
@@ -211,15 +211,15 @@ class ReviewCasesView(QtWidgets.QWidget):
         actions_layout = QtWidgets.QGridLayout()
         actions_layout.setHorizontalSpacing(10)
         actions_layout.setVerticalSpacing(10)
-        self.claim_button = QtWidgets.QPushButton("Claim")
-        self.unclaim_button = QtWidgets.QPushButton("Unclaim")
-        self.approve_button = QtWidgets.QPushButton("Approve")
-        self.reject_button = QtWidgets.QPushButton("Reject")
-        self.close_button = QtWidgets.QPushButton("Close")
-        self.assign_owner_button = QtWidgets.QPushButton("Assign To Me")
-        self.start_measure_button = QtWidgets.QPushButton("Start Measure")
-        self.mitigate_button = QtWidgets.QPushButton("Mark Mitigated")
-        self.accept_risk_button = QtWidgets.QPushButton("Accept Risk")
+        self.claim_button = QtWidgets.QPushButton("Uebernehmen")
+        self.unclaim_button = QtWidgets.QPushButton("Freigeben")
+        self.approve_button = QtWidgets.QPushButton("Freigeben")
+        self.reject_button = QtWidgets.QPushButton("Ablehnen")
+        self.close_button = QtWidgets.QPushButton("Schliessen")
+        self.assign_owner_button = QtWidgets.QPushButton("Mir zuweisen")
+        self.start_measure_button = QtWidgets.QPushButton("Massnahme starten")
+        self.mitigate_button = QtWidgets.QPushButton("Als mitigiert markieren")
+        self.accept_risk_button = QtWidgets.QPushButton("Restrisiko akzeptieren")
         buttons = [
             self.claim_button,
             self.unclaim_button,
@@ -272,7 +272,7 @@ class ReviewCasesView(QtWidgets.QWidget):
         self.case_model.update_items(rows)
         if not rows:
             self._current_case_id = None
-            self.clear_case_detail("No cases are available right now.")
+            self.clear_case_detail("Derzeit sind keine Faelle verfuegbar.")
         elif self._current_case_id is None:
             self.select_case(int(rows[0]["id"]))
 
@@ -291,28 +291,28 @@ class ReviewCasesView(QtWidgets.QWidget):
         self.detail_summary.setText(str(payload["summary"]))
         status_text = f"{payload['status']} / {payload['finding_status']}"
         self.detail_status_pill.setText(status_text)
-        self.detail_status_pill.setProperty("tone", str(payload["status"]).lower())
+        self.detail_status_pill.setProperty("tone", str(payload["status_tone"]).lower())
         self.detail_status_pill.show()
         self.detail_status_pill.style().unpolish(self.detail_status_pill)
         self.detail_status_pill.style().polish(self.detail_status_pill)
-        self.detail_risk_pill.setText(f"Risk {payload['risk_level']}")
-        self.detail_risk_pill.setProperty("tone", f"risk-{str(payload['risk_level']).lower()}")
+        self.detail_risk_pill.setText(f"Risiko {payload['risk_level']}")
+        self.detail_risk_pill.setProperty("tone", f"risk-{str(payload['risk_tone']).lower()}")
         self.detail_risk_pill.show()
         self.detail_risk_pill.style().unpolish(self.detail_risk_pill)
         self.detail_risk_pill.style().polish(self.detail_risk_pill)
         self.detail_meta.setText(
-            f"<b>Governance context</b><br>"
-            f"Item type: <b>{payload['case_kind']}</b> &nbsp;&nbsp; Risk level: <b>{payload['risk_level']}</b> &nbsp;&nbsp; Priority: <b>{payload['priority']}</b><br>"
-            f"Finding status: <b>{payload['finding_status']}</b> &nbsp;&nbsp; Control status: <b>{payload['control_status']}</b><br><br>"
-            f"<b>Ownership and measure</b><br>"
-            f"Measure: <b>{payload['measure_title']}</b><br>"
-            f"Measure status: <b>{payload['measure_status']}</b> &nbsp;&nbsp; Measure owner: <b>{payload['measure_owner_name']}</b> &nbsp;&nbsp; Due date: <b>{payload['due_at']}</b><br>"
-            f"Claimed by: <b>{payload['claimed_by_name']}</b><br><br>"
-            f"<b>Decision and evidence</b><br>"
-            f"Decision: <b>{payload['decision']}</b><br>"
-            f"Decision reason: <b>{payload['decision_reason']}</b><br>"
-            f"Evidence note: <b>{payload['evidence_note']}</b><br>"
-            f"Updated: <b>{payload['updated_at']}</b>"
+            f"<b>Governance-Kontext</b><br>"
+            f"Elementtyp: <b>{payload['case_kind']}</b> &nbsp;&nbsp; Risikostufe: <b>{payload['risk_level']}</b> &nbsp;&nbsp; Prioritaet: <b>{payload['priority']}</b><br>"
+            f"Abweichungsstatus: <b>{payload['finding_status']}</b> &nbsp;&nbsp; Kontrollstatus: <b>{payload['control_status']}</b><br><br>"
+            f"<b>Verantwortlichkeit und Massnahme</b><br>"
+            f"Massnahme: <b>{payload['measure_title']}</b><br>"
+            f"Massnahmenstatus: <b>{payload['measure_status']}</b> &nbsp;&nbsp; Owner: <b>{payload['measure_owner_name']}</b> &nbsp;&nbsp; Faellig am: <b>{payload['due_at']}</b><br>"
+            f"Uebernommen von: <b>{payload['claimed_by_name']}</b><br><br>"
+            f"<b>Entscheidung und Nachweis</b><br>"
+            f"Entscheidung: <b>{payload['decision']}</b><br>"
+            f"Begruendung: <b>{payload['decision_reason']}</b><br>"
+            f"Nachweishinweis: <b>{payload['evidence_note']}</b><br>"
+            f"Aktualisiert: <b>{payload['updated_at']}</b>"
         )
         self.claim_button.setEnabled(bool(payload["allowed_actions"]["claim"]))
         self.unclaim_button.setEnabled(bool(payload["allowed_actions"]["unclaim"]))
@@ -326,12 +326,12 @@ class ReviewCasesView(QtWidgets.QWidget):
         self.rule_hint_label.setText(str(payload["primary_hint"]))
 
     def clear_case_detail(self, message: str) -> None:
-        self.detail_title.setText("Select a case")
+        self.detail_title.setText("Fall auswaehlen")
         self.detail_status_pill.hide()
         self.detail_risk_pill.hide()
         self.detail_summary.setText(message)
         self.detail_meta.setText("")
-        self.rule_hint_label.setText("No case-specific actions are available.")
+        self.rule_hint_label.setText("Derzeit sind keine fallspezifischen Aktionen verfuegbar.")
         for button in (
             self.claim_button,
             self.unclaim_button,
@@ -373,8 +373,8 @@ class GovernanceConsoleView(QtWidgets.QWidget):
         super().__init__()
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(16)
-        layout.addWidget(_section_title("Governance Console"))
-        layout.addWidget(_section_caption("Control global guardrails and review which users currently hold which roles."))
+        layout.addWidget(_section_title("Governance-Konsole"))
+        layout.addWidget(_section_caption("Steuere globale Guardrails und pruefe, welche Nutzer aktuell welche Rollen tragen."))
         self.summary_label = QtWidgets.QLabel()
         self.summary_label.setWordWrap(True)
         self.summary_label.setObjectName("calloutInfo")
@@ -384,8 +384,8 @@ class GovernanceConsoleView(QtWidgets.QWidget):
         controls_layout = QtWidgets.QVBoxLayout(controls_card)
         controls_layout.setContentsMargins(16, 16, 16, 16)
         form = QtWidgets.QFormLayout()
-        self.read_only_checkbox = QtWidgets.QCheckBox("Enable read-only mode")
-        self.review_cases_checkbox = QtWidgets.QCheckBox("Enable Review Cases workflow")
+        self.read_only_checkbox = QtWidgets.QCheckBox("Nur-Lesen-Modus aktivieren")
+        self.review_cases_checkbox = QtWidgets.QCheckBox("Workflow fuer Prueffaelle aktivieren")
         form.addRow("Guardrails", self.read_only_checkbox)
         form.addRow("", self.review_cases_checkbox)
         controls_layout.addLayout(form)
@@ -395,11 +395,11 @@ class GovernanceConsoleView(QtWidgets.QWidget):
         role_layout = QtWidgets.QVBoxLayout(role_card)
         role_layout.setContentsMargins(16, 16, 16, 16)
         self.role_matrix = QtWidgets.QTableWidget(0, 2)
-        self.role_matrix.setHorizontalHeaderLabels(["User", "Roles"])
+        self.role_matrix.setHorizontalHeaderLabels(["Nutzer", "Rollen"])
         self.role_matrix.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.role_matrix.verticalHeader().setVisible(False)
         self.role_matrix.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        role_layout.addWidget(_section_caption("Current role bindings"))
+        role_layout.addWidget(_section_caption("Aktuelle Rollenzuordnungen"))
         role_layout.addWidget(self.role_matrix, 1)
         layout.addWidget(role_card, 1)
 
@@ -408,16 +408,16 @@ class GovernanceConsoleView(QtWidgets.QWidget):
         self.feedback_label.setObjectName("feedbackNeutral")
         layout.addWidget(self.feedback_label)
 
-        self.save_button = QtWidgets.QPushButton("Save governance settings")
+        self.save_button = QtWidgets.QPushButton("Governance-Einstellungen speichern")
         self.save_button.setProperty("buttonRole", "primary")
         self.save_button.clicked.connect(self._emit_save)
         layout.addWidget(self.save_button)
 
     def refresh(self, *, active_user: str, active_roles: list[str], policy: dict[str, object], role_rows: list[tuple[str, str]]) -> None:
-        roles_text = ", ".join(active_roles) or "No roles"
+        roles_text = ", ".join(active_roles) or "Keine Rollen"
         self.summary_label.setText(
-            f"Signed in as <b>{active_user}</b> with roles <b>{roles_text}</b>. "
-            "Only admins can change guardrails."
+            f"Angemeldet als <b>{active_user}</b> mit Rollen <b>{roles_text}</b>. "
+            "Nur Admins duerfen Guardrails aendern."
         )
         self.read_only_checkbox.setChecked(bool(policy["read_only_enabled"]))
         self.review_cases_checkbox.setChecked(bool(policy["review_cases_enabled"]))
@@ -441,8 +441,8 @@ class AuditView(QtWidgets.QWidget):
         super().__init__()
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(16)
-        layout.addWidget(_section_title("Audit & Evidence"))
-        self.summary_label = QtWidgets.QLabel("Recent high-value events are stored locally for traceability.")
+        layout.addWidget(_section_title("Audit & Nachweise"))
+        self.summary_label = QtWidgets.QLabel("Wichtige Ereignisse werden lokal fuer Nachvollziehbarkeit gespeichert.")
         self.summary_label.setWordWrap(True)
         self.summary_label.setObjectName("calloutInfo")
         layout.addWidget(self.summary_label)
@@ -461,7 +461,7 @@ class AuditView(QtWidgets.QWidget):
         table_layout.addWidget(self.audit_table, 1)
         layout.addWidget(table_card, 1)
 
-        self.detail_label = QtWidgets.QLabel("Select an audit event to inspect its payload.")
+        self.detail_label = QtWidgets.QLabel("Waehle ein Audit-Ereignis aus, um seine Details zu sehen.")
         self.detail_label.setWordWrap(True)
         self.detail_label.setObjectName("detailPanel")
         layout.addWidget(self.detail_label)
@@ -469,17 +469,17 @@ class AuditView(QtWidgets.QWidget):
     def refresh(self, rows: list[dict[str, object]]) -> None:
         self.audit_model.update_items(rows)
         self.detail_label.setText(
-            "Select an audit event to inspect its payload." if rows else "No audit events have been recorded yet."
+            "Waehle ein Audit-Ereignis aus, um seine Details zu sehen." if rows else "Es wurden noch keine Audit-Ereignisse erfasst."
         )
 
     def _handle_clicked(self, index: QtCore.QModelIndex) -> None:
         item = self.audit_model.data(index, QtCore.Qt.UserRole)
         if item:
             self.detail_label.setText(
-                f"Severity: <b>{item['severity']}</b><br>"
-                f"Actor: <b>{item['actor_name']}</b><br>"
-                f"Action: <b>{item['action']}</b><br>"
-                f"Entity: <b>{item['entity_label']}</b><br>"
+                f"Schweregrad: <b>{item['severity']}</b><br>"
+                f"Akteur: <b>{item['actor_name']}</b><br>"
+                f"Aktion: <b>{item['action']}</b><br>"
+                f"Objekt: <b>{item['entity_label']}</b><br>"
                 f"Payload:<br><pre>{item['payload_pretty']}</pre>"
             )
 
@@ -491,8 +491,8 @@ class HealthStatusView(QtWidgets.QWidget):
         super().__init__()
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(16)
-        layout.addWidget(_section_title("Health & Change Status"))
-        layout.addWidget(_section_caption("Track migration state, runtime checks, and local operational signals."))
+        layout.addWidget(_section_title("Systemzustand & Aenderungsstatus"))
+        layout.addWidget(_section_caption("Behalte Migrationsstand, Laufzeitpruefungen und lokale Betriebssignale im Blick."))
 
         self.summary_label = QtWidgets.QLabel()
         self.summary_label.setWordWrap(True)
@@ -508,7 +508,7 @@ class HealthStatusView(QtWidgets.QWidget):
         history_layout = QtWidgets.QVBoxLayout(history_card)
         history_layout.setContentsMargins(16, 16, 16, 16)
         self.history_list = QtWidgets.QListWidget()
-        history_layout.addWidget(_section_caption("Recent health snapshots"))
+        history_layout.addWidget(_section_caption("Letzte Health-Snapshots"))
         history_layout.addWidget(self.history_list, 1)
         layout.addWidget(history_card, 1)
 
@@ -517,7 +517,7 @@ class HealthStatusView(QtWidgets.QWidget):
         self.detail_label.setObjectName("detailPanel")
         layout.addWidget(self.detail_label)
 
-        self.run_button = QtWidgets.QPushButton("Run health check")
+        self.run_button = QtWidgets.QPushButton("Health-Pruefung starten")
         self.run_button.setProperty("buttonRole", "primary")
         self.run_button.clicked.connect(self.run_requested.emit)
         layout.addWidget(self.run_button)
@@ -526,5 +526,5 @@ class HealthStatusView(QtWidgets.QWidget):
         self.summary_label.setText(summary_text)
         self.migration_label.setText(migration_text)
         self.history_list.clear()
-        self.history_list.addItems(rows or ["No health snapshots recorded yet."])
+        self.history_list.addItems(rows or ["Es sind noch keine Health-Snapshots vorhanden."])
         self.detail_label.setText(details_text)

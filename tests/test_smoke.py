@@ -14,7 +14,7 @@ def test_main_window_smoke(qtbot, app_context) -> None:
     assert window.review_cases_view.rule_hint_label.text() != ""
     assert window.review_cases_view.detail_meta.text() != ""
     assert window.health_view.detail_label.text() != ""
-    assert "Governance Showcase App" in window.windowTitle()
+    assert "Governance-Demo-App" in window.windowTitle()
 
 
 def test_main_window_refresh_keeps_case_detail_stable_after_action(qtbot, app_context) -> None:
@@ -28,7 +28,7 @@ def test_main_window_refresh_keeps_case_detail_stable_after_action(qtbot, app_co
 
     assert window.review_cases_view.current_case_id == 1
     assert window.review_cases_view.detail_title.text() == before_title
-    assert "Case claimed." in window.review_cases_view.feedback_label.text()
+    assert "Fall uebernommen." in window.review_cases_view.feedback_label.text()
 
 
 def test_main_window_shows_isms_context_in_case_detail(qtbot, app_context) -> None:
@@ -39,7 +39,7 @@ def test_main_window_shows_isms_context_in_case_detail(qtbot, app_context) -> No
     window.review_cases_view.select_case(2)
 
     detail = window.review_cases_view.detail_meta.text()
-    assert "Risk level" in detail
-    assert "Finding status" in detail
-    assert "Measure status" in detail
-    assert "Measure owner" in detail
+    assert "Risikostufe" in detail
+    assert "Abweichungsstatus" in detail
+    assert "Massnahmenstatus" in detail
+    assert "Owner" in detail
