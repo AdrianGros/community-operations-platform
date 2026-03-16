@@ -54,6 +54,8 @@ def test_active_user_dropdown_is_reachable_and_switchable(qtbot, app_context) ->
     combo = window.user_combo
     assert combo.isVisible()
     assert combo.count() >= 3
+    initial_width = combo.width()
+    initial_role_x = window.role_badge.x()
 
     combo.showPopup()
     QtWidgets.QApplication.processEvents()
@@ -61,6 +63,8 @@ def test_active_user_dropdown_is_reachable_and_switchable(qtbot, app_context) ->
 
     _select_user_by_name(window, "Mina Patel")
     assert "Mina Patel" in window.windowTitle()
+    assert combo.width() == initial_width
+    assert window.role_badge.x() == initial_role_x
 
 
 def test_review_case_actions_are_visible_and_stateful(qtbot, app_context) -> None:

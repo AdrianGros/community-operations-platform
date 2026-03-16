@@ -222,6 +222,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 padding: 8px 10px;
                 min-width: 160px;
                 color: #16324f;
+                font-weight: 600;
             }
             QComboBox:hover {
                 border: 1px solid #9db7cf;
@@ -259,6 +260,10 @@ class MainWindow(QtWidgets.QMainWindow):
             QComboBox QAbstractItemView::item:hover {
                 background: #e8f1f8;
                 color: #16324f;
+            }
+            QComboBox:on {
+                color: #16324f;
+                background: #ffffff;
             }
             QCheckBox {
                 spacing: 8px;
@@ -356,12 +361,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
         controls_layout = QtWidgets.QHBoxLayout()
         controls_layout.setSpacing(10)
-        controls_layout.addWidget(QtWidgets.QLabel("Active user"))
+        controls_layout.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        active_user_label = QtWidgets.QLabel("Active user")
+        active_user_label.setStyleSheet("color: white; font-weight: 500;")
+        controls_layout.addWidget(active_user_label)
         self.user_combo = QtWidgets.QComboBox()
+        self.user_combo.setFixedWidth(180)
+        self.user_combo.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
         self.user_combo.currentIndexChanged.connect(self._handle_user_change)
         controls_layout.addWidget(self.user_combo)
         self.role_badge = QtWidgets.QLabel()
+        self.role_badge.setFixedWidth(140)
+        self.role_badge.setAlignment(QtCore.Qt.AlignCenter)
         self.policy_badge = QtWidgets.QLabel()
+        self.policy_badge.setFixedWidth(220)
+        self.policy_badge.setAlignment(QtCore.Qt.AlignCenter)
         controls_layout.addWidget(self.role_badge)
         controls_layout.addWidget(self.policy_badge)
         header_layout.addLayout(controls_layout)
