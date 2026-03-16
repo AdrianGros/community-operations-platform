@@ -65,6 +65,26 @@ def test_active_user_dropdown_is_reachable_and_switchable(qtbot, app_context) ->
     assert "Mina Patel" in window.windowTitle()
     assert combo.width() == initial_width
     assert window.role_badge.x() == initial_role_x
+    assert combo.toolTip() == "Mina Patel"
+
+
+def test_header_badges_use_stable_text_constraints_and_tooltips(qtbot, app_context) -> None:
+    window = MainWindow(app_context)
+    qtbot.addWidget(window)
+    window.show()
+
+    window.role_badge.setText("")
+    window.role_badge.setToolTip("")
+    long_roles = "ADMIN, REVIEWER, AUDITOR, GOVERNANCE-OWNER"
+    truncated = window._truncate_text(long_roles, 20)
+
+    assert len(truncated) <= 20
+    assert truncated.endswith("...")
+
+    window.refresh_all()
+    assert window.role_badge.toolTip().startswith("Roles:")
+    assert len(window.role_badge.text()) <= len("Roles: ") + 20
+    assert window.policy_badge.toolTip().startswith("Read-only:")
 
 
 def test_review_case_actions_are_visible_and_stateful(qtbot, app_context) -> None:

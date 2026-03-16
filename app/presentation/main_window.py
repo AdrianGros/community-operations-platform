@@ -223,6 +223,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 min-width: 160px;
                 color: #16324f;
                 font-weight: 600;
+                selection-color: #16324f;
+                selection-background-color: #ffffff;
             }
             QComboBox:hover {
                 border: 1px solid #9db7cf;
@@ -444,18 +446,22 @@ class MainWindow(QtWidgets.QMainWindow):
         current_id = self.app_context.session.current_user_id
         current_index = max(0, self.user_combo.findData(current_id))
         self.user_combo.setCurrentIndex(current_index)
+        if self.user_combo.currentText():
+            self.user_combo.setToolTip(self.user_combo.currentText())
         self.user_combo.blockSignals(False)
 
     def _refresh_header(self) -> None:
         current_user = self.app_context.services.session_service.get_current_user()
         roles = ", ".join(self.app_context.services.session_service.get_current_roles()) or "No roles"
         policy = self.app_context.services.governance_service.get_policy()
-        self.role_badge.setText(f"Roles: {roles}")
+        role_text = f"Roles: {self._truncate_text(roles, 20)}"
+        self.role_badge.setText(role_text)
+        self.role_badge.setToolTip(f"Roles: {roles}")
         self.role_badge.setObjectName("pill")
         review_enabled = policy.feature_flags.get("review_cases", True)
-        self.policy_badge.setText(
-            f"Read-only: {'on' if policy.read_only_enabled else 'off'} | Review Cases: {'on' if review_enabled else 'off'}"
-        )
+        policy_full = f"Read-only: {'on' if policy.read_only_enabled else 'off'} | Review Cases: {'on' if review_enabled else 'off'}"
+        self.policy_badge.setText(self._truncate_text(policy_full, 30))
+        self.policy_badge.setToolTip(policy_full)
         self.policy_badge.setObjectName("pill")
         self.policy_badge.setStyleSheet(
             "background: #f0b347; color: #4c3200; border: 1px solid #e0c27a; border-radius: 999px; padding: 8px 12px; font-weight: 700;"
@@ -652,6 +658,7 @@ class MainWindow(QtWidgets.QMainWindow):
         user_id = self.user_combo.itemData(index)
         if user_id is None:
             return
+        self.user_combo.setToolTip(self.user_combo.currentText())
         self.app_context.services.session_service.switch_user(int(user_id))
         self.refresh_all()
 
@@ -662,6 +669,13 @@ class MainWindow(QtWidgets.QMainWindow):
         state = self.settings.value("windowState")
         if state is not None:
             self.restoreState(state)
+
+    @staticmethod
+    def _truncate_text(value: str, max_length: int) -> str:
+        normalized = value.strip()
+        if len(normalized) <= max_length:
+            return normalized
+        return f"{normalized[: max_length - 3].rstrip()}..."
 
     @staticmethod
     def _parse_json_payload(raw_payload: str, *, fallback: dict[str, object]) -> dict[str, object]:
