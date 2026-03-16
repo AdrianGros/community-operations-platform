@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from PySide6 import QtCore
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QFont
 
 
 class CaseTableModel(QtCore.QAbstractTableModel):
@@ -59,10 +59,7 @@ class CaseTableModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.FontRole:
             key = keys[index.column()]
             if key in {"risk_level", "finding_status", "measure_status"}:
-                font = super().data(index, role)
-                if font is None:
-                    from PySide6.QtGui import QFont
-                    font = QFont()
+                font = QFont()
                 font.setBold(True)
                 return font
         if role == QtCore.Qt.TextAlignmentRole:
@@ -112,7 +109,6 @@ class AuditTableModel(QtCore.QAbstractTableModel):
                 "ERROR": QColor("#9f2d2d"),
             }.get(str(item.get("severity", "")).upper())
         if role == QtCore.Qt.FontRole and keys[index.column()] == "severity":
-            from PySide6.QtGui import QFont
             font = QFont()
             font.setBold(True)
             return font
