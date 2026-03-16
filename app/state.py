@@ -1,31 +1,46 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-
-import asyncpg
+from pathlib import Path
+from typing import Any
 
 
 @dataclass(slots=True)
 class Repositories:
-    audit_repo: object
-    tenant_config_repo: object
-    membership_repo: object
-    session_repo: object
-    session_reminder_repo: object
-    scheduled_message_repo: object
+    user_repo: Any
+    role_binding_repo: Any
+    governance_repo: Any
+    review_case_repo: Any
+    audit_repo: Any
+    health_repo: Any
+    migration_repo: Any
 
 
 @dataclass(slots=True)
 class Services:
+    dashboard_service: Any
+    session_service: Any
+    case_service: Any
+    governance_service: Any
     audit_service: object
-    tenant_config_service: object
     health_service: object
-    reminder_service: object
-    error_notify_service: object
 
 
 @dataclass(slots=True)
-class AppState:
-    pool: asyncpg.Pool
+class SessionState:
+    current_user_id: int
+
+
+@dataclass(slots=True)
+class RuntimeState:
+    data_dir: Path
+    db_path: Path
+    log_path: Path
+
+
+@dataclass(slots=True)
+class AppContext:
     repos: Repositories
     services: Services
+    session: SessionState
+    runtime: RuntimeState
