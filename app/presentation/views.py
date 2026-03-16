@@ -7,7 +7,27 @@ from app.presentation.view_models import AuditTableModel, CaseTableModel
 
 def _section_title(text: str) -> QtWidgets.QLabel:
     label = QtWidgets.QLabel(text)
-    label.setStyleSheet("font-size: 20px; font-weight: 700;")
+    label.setObjectName("sectionTitle")
+    return label
+
+
+def _section_caption(text: str) -> QtWidgets.QLabel:
+    label = QtWidgets.QLabel(text)
+    label.setObjectName("sectionCaption")
+    label.setWordWrap(True)
+    return label
+
+
+def _card() -> QtWidgets.QFrame:
+    frame = QtWidgets.QFrame()
+    frame.setObjectName("card")
+    return frame
+
+
+def _pill_label() -> QtWidgets.QLabel:
+    label = QtWidgets.QLabel()
+    label.setObjectName("pill")
+    label.setAlignment(QtCore.Qt.AlignCenter)
     return label
 
 
@@ -15,15 +35,22 @@ class DashboardView(QtWidgets.QWidget):
     def __init__(self) -> None:
         super().__init__()
         layout = QtWidgets.QVBoxLayout(self)
-        layout.setSpacing(16)
+        layout.setSpacing(18)
         layout.addWidget(_section_title("Dashboard"))
+        layout.addWidget(_section_caption("A compact overview of workload, governance state, and runtime health."))
 
+        hero_card = _card()
+        hero_layout = QtWidgets.QVBoxLayout(hero_card)
+        hero_layout.setContentsMargins(18, 18, 18, 18)
+        hero_layout.setSpacing(10)
         self.hero_label = QtWidgets.QLabel()
         self.hero_label.setWordWrap(True)
-        self.hero_label.setStyleSheet("font-size: 15px; color: #243b53;")
-        layout.addWidget(self.hero_label)
+        self.hero_label.setObjectName("heroText")
+        hero_layout.addWidget(self.hero_label)
+        layout.addWidget(hero_card)
 
         self.cards_layout = QtWidgets.QHBoxLayout()
+        self.cards_layout.setSpacing(14)
         layout.addLayout(self.cards_layout)
         self.cards: dict[str, QtWidgets.QLabel] = {}
         for key, title in [
@@ -33,37 +60,43 @@ class DashboardView(QtWidgets.QWidget):
             ("accepted_risks", "Accepted Risks"),
             ("closed_cases", "Closed"),
         ]:
-            frame = QtWidgets.QFrame()
+            frame = _card()
             frame.setObjectName("metricCard")
-            frame.setStyleSheet(
-                "#metricCard {background: white; border: 1px solid #d9e2ec; border-radius: 12px; padding: 12px;}"
-            )
             card_layout = QtWidgets.QVBoxLayout(frame)
+            card_layout.setContentsMargins(16, 16, 16, 16)
             heading = QtWidgets.QLabel(title)
-            heading.setStyleSheet("color: #486581; font-size: 12px; text-transform: uppercase;")
+            heading.setObjectName("metricHeading")
             value = QtWidgets.QLabel("0")
-            value.setStyleSheet("font-size: 28px; font-weight: 700; color: #102a43;")
+            value.setObjectName("metricValue")
             card_layout.addWidget(heading)
             card_layout.addWidget(value)
             self.cards_layout.addWidget(frame)
             self.cards[key] = value
 
+        status_row = QtWidgets.QHBoxLayout()
+        status_row.setSpacing(14)
         self.policy_label = QtWidgets.QLabel()
         self.policy_label.setWordWrap(True)
-        layout.addWidget(self.policy_label)
-
+        self.policy_label.setObjectName("inlineInfo")
         self.blocked_label = QtWidgets.QLabel()
         self.blocked_label.setWordWrap(True)
-        layout.addWidget(self.blocked_label)
-
+        self.blocked_label.setObjectName("inlineInfo")
         self.health_label = QtWidgets.QLabel()
         self.health_label.setWordWrap(True)
-        layout.addWidget(self.health_label)
+        self.health_label.setObjectName("inlineInfo")
+        status_row.addWidget(self.policy_label, 1)
+        status_row.addWidget(self.blocked_label, 1)
+        status_row.addWidget(self.health_label, 1)
+        layout.addLayout(status_row)
 
+        audit_card = _card()
+        audit_layout = QtWidgets.QVBoxLayout(audit_card)
+        audit_layout.setContentsMargins(16, 16, 16, 16)
+        audit_layout.addWidget(_section_caption("Recent audit highlights"))
         self.recent_audit_list = QtWidgets.QListWidget()
         self.recent_audit_list.setMaximumHeight(180)
-        layout.addWidget(QtWidgets.QLabel("Recent audit highlights"))
-        layout.addWidget(self.recent_audit_list, 1)
+        audit_layout.addWidget(self.recent_audit_list, 1)
+        layout.addWidget(audit_card, 1)
 
     def refresh(self, snapshot: dict[str, object]) -> None:
         user = snapshot["current_user"]
@@ -106,15 +139,20 @@ class ReviewCasesView(QtWidgets.QWidget):
     def __init__(self) -> None:
         super().__init__()
         layout = QtWidgets.QHBoxLayout(self)
-        layout.setSpacing(16)
+        layout.setSpacing(18)
 
         left = QtWidgets.QVBoxLayout()
         left.addWidget(_section_title("Review Cases"))
+        left.addWidget(_section_caption("Work through findings, mitigation actions, and controlled closure decisions."))
         self.banner = QtWidgets.QLabel()
         self.banner.setWordWrap(True)
+        self.banner.setObjectName("calloutInfo")
         left.addWidget(self.banner)
 
         self.case_model = CaseTableModel()
+        table_card = _card()
+        table_layout = QtWidgets.QVBoxLayout(table_card)
+        table_layout.setContentsMargins(10, 10, 10, 10)
         self.case_table = QtWidgets.QTableView()
         self.case_table.setModel(self.case_model)
         self.case_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -122,37 +160,57 @@ class ReviewCasesView(QtWidgets.QWidget):
         self.case_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.case_table.verticalHeader().setVisible(False)
         self.case_table.setAlternatingRowColors(True)
+        self.case_table.setShowGrid(False)
+        self.case_table.setSortingEnabled(False)
         self.case_table.clicked.connect(self._handle_clicked)
-        left.addWidget(self.case_table, 1)
+        table_layout.addWidget(self.case_table, 1)
+        left.addWidget(table_card, 1)
 
         left_widget = QtWidgets.QWidget()
         left_widget.setLayout(left)
         layout.addWidget(left_widget, 2)
 
-        detail_frame = QtWidgets.QFrame()
-        detail_frame.setStyleSheet("QFrame {background: white; border: 1px solid #d9e2ec; border-radius: 12px;}")
+        detail_frame = _card()
         detail_layout = QtWidgets.QVBoxLayout(detail_frame)
+        detail_layout.setContentsMargins(16, 16, 16, 16)
+        detail_layout.setSpacing(12)
         detail_layout.addWidget(_section_title("Case Detail"))
+        detail_layout.addWidget(_section_caption("The selected case is broken into status, ownership, and evidence context."))
         self.detail_title = QtWidgets.QLabel("Select a case")
-        self.detail_title.setStyleSheet("font-size: 18px; font-weight: 700;")
+        self.detail_title.setObjectName("detailTitle")
+        self.detail_status_pill = _pill_label()
+        self.detail_risk_pill = _pill_label()
+        self.detail_status_pill.hide()
+        self.detail_risk_pill.hide()
         self.detail_summary = QtWidgets.QLabel("")
         self.detail_summary.setWordWrap(True)
+        self.detail_summary.setObjectName("detailSummary")
         self.detail_meta = QtWidgets.QLabel("")
         self.detail_meta.setWordWrap(True)
+        self.detail_meta.setObjectName("detailMeta")
         detail_layout.addWidget(self.detail_title)
+        pill_row = QtWidgets.QHBoxLayout()
+        pill_row.setSpacing(8)
+        pill_row.addWidget(self.detail_status_pill, 0, QtCore.Qt.AlignLeft)
+        pill_row.addWidget(self.detail_risk_pill, 0, QtCore.Qt.AlignLeft)
+        pill_row.addStretch(1)
+        detail_layout.addLayout(pill_row)
         detail_layout.addWidget(self.detail_summary)
         detail_layout.addWidget(self.detail_meta)
 
         self.feedback_label = QtWidgets.QLabel("")
         self.feedback_label.setWordWrap(True)
+        self.feedback_label.setObjectName("feedbackNeutral")
         detail_layout.addWidget(self.feedback_label)
 
         self.rule_hint_label = QtWidgets.QLabel("")
         self.rule_hint_label.setWordWrap(True)
-        self.rule_hint_label.setStyleSheet("color: #486581;")
+        self.rule_hint_label.setObjectName("calloutMuted")
         detail_layout.addWidget(self.rule_hint_label)
 
         actions_layout = QtWidgets.QGridLayout()
+        actions_layout.setHorizontalSpacing(10)
+        actions_layout.setVerticalSpacing(10)
         self.claim_button = QtWidgets.QPushButton("Claim")
         self.unclaim_button = QtWidgets.QPushButton("Unclaim")
         self.approve_button = QtWidgets.QPushButton("Approve")
@@ -175,6 +233,16 @@ class ReviewCasesView(QtWidgets.QWidget):
         ]
         for button in buttons:
             button.setEnabled(False)
+            button.setMinimumHeight(38)
+        self.claim_button.setProperty("buttonRole", "secondary")
+        self.unclaim_button.setProperty("buttonRole", "primary")
+        self.approve_button.setProperty("buttonRole", "primary")
+        self.reject_button.setProperty("buttonRole", "danger")
+        self.close_button.setProperty("buttonRole", "secondary")
+        self.assign_owner_button.setProperty("buttonRole", "secondary")
+        self.start_measure_button.setProperty("buttonRole", "primary")
+        self.mitigate_button.setProperty("buttonRole", "primary")
+        self.accept_risk_button.setProperty("buttonRole", "warning")
         actions_layout.addWidget(self.claim_button, 0, 0)
         actions_layout.addWidget(self.unclaim_button, 0, 1)
         actions_layout.addWidget(self.approve_button, 1, 0)
@@ -221,18 +289,26 @@ class ReviewCasesView(QtWidgets.QWidget):
         self._current_case_id = int(payload["id"])
         self.detail_title.setText(str(payload["title"]))
         self.detail_summary.setText(str(payload["summary"]))
+        status_text = f"{payload['status']} / {payload['finding_status']}"
+        self.detail_status_pill.setText(status_text)
+        self.detail_status_pill.setProperty("tone", str(payload["status"]).lower())
+        self.detail_status_pill.show()
+        self.detail_status_pill.style().unpolish(self.detail_status_pill)
+        self.detail_status_pill.style().polish(self.detail_status_pill)
+        self.detail_risk_pill.setText(f"Risk {payload['risk_level']}")
+        self.detail_risk_pill.setProperty("tone", f"risk-{str(payload['risk_level']).lower()}")
+        self.detail_risk_pill.show()
+        self.detail_risk_pill.style().unpolish(self.detail_risk_pill)
+        self.detail_risk_pill.style().polish(self.detail_risk_pill)
         self.detail_meta.setText(
-            f"Status: <b>{payload['status']}</b><br>"
-            f"Item type: <b>{payload['case_kind']}</b><br>"
-            f"Risk level: <b>{payload['risk_level']}</b><br>"
-            f"Finding status: <b>{payload['finding_status']}</b><br>"
-            f"Control status: <b>{payload['control_status']}</b><br>"
+            f"<b>Governance context</b><br>"
+            f"Item type: <b>{payload['case_kind']}</b> &nbsp;&nbsp; Risk level: <b>{payload['risk_level']}</b> &nbsp;&nbsp; Priority: <b>{payload['priority']}</b><br>"
+            f"Finding status: <b>{payload['finding_status']}</b> &nbsp;&nbsp; Control status: <b>{payload['control_status']}</b><br><br>"
+            f"<b>Ownership and measure</b><br>"
             f"Measure: <b>{payload['measure_title']}</b><br>"
-            f"Measure status: <b>{payload['measure_status']}</b><br>"
-            f"Measure owner: <b>{payload['measure_owner_name']}</b><br>"
-            f"Due date: <b>{payload['due_at']}</b><br>"
-            f"Priority: <b>{payload['priority']}</b><br>"
-            f"Claimed by: <b>{payload['claimed_by_name']}</b><br>"
+            f"Measure status: <b>{payload['measure_status']}</b> &nbsp;&nbsp; Measure owner: <b>{payload['measure_owner_name']}</b> &nbsp;&nbsp; Due date: <b>{payload['due_at']}</b><br>"
+            f"Claimed by: <b>{payload['claimed_by_name']}</b><br><br>"
+            f"<b>Decision and evidence</b><br>"
             f"Decision: <b>{payload['decision']}</b><br>"
             f"Decision reason: <b>{payload['decision_reason']}</b><br>"
             f"Evidence note: <b>{payload['evidence_note']}</b><br>"
@@ -251,6 +327,8 @@ class ReviewCasesView(QtWidgets.QWidget):
 
     def clear_case_detail(self, message: str) -> None:
         self.detail_title.setText("Select a case")
+        self.detail_status_pill.hide()
+        self.detail_risk_pill.hide()
         self.detail_summary.setText(message)
         self.detail_meta.setText("")
         self.rule_hint_label.setText("No case-specific actions are available.")
@@ -268,8 +346,9 @@ class ReviewCasesView(QtWidgets.QWidget):
             button.setEnabled(False)
 
     def show_feedback(self, message: str, *, ok: bool) -> None:
-        color = "#1f7a1f" if ok else "#9b1c1c"
-        self.feedback_label.setStyleSheet(f"color: {color}; font-weight: 600;")
+        self.feedback_label.setObjectName("feedbackSuccess" if ok else "feedbackError")
+        self.feedback_label.style().unpolish(self.feedback_label)
+        self.feedback_label.style().polish(self.feedback_label)
         self.feedback_label.setText(message)
 
     @property
@@ -295,30 +374,42 @@ class GovernanceConsoleView(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(16)
         layout.addWidget(_section_title("Governance Console"))
+        layout.addWidget(_section_caption("Control global guardrails and review which users currently hold which roles."))
         self.summary_label = QtWidgets.QLabel()
         self.summary_label.setWordWrap(True)
+        self.summary_label.setObjectName("calloutInfo")
         layout.addWidget(self.summary_label)
 
+        controls_card = _card()
+        controls_layout = QtWidgets.QVBoxLayout(controls_card)
+        controls_layout.setContentsMargins(16, 16, 16, 16)
         form = QtWidgets.QFormLayout()
         self.read_only_checkbox = QtWidgets.QCheckBox("Enable read-only mode")
         self.review_cases_checkbox = QtWidgets.QCheckBox("Enable Review Cases workflow")
         form.addRow("Guardrails", self.read_only_checkbox)
         form.addRow("", self.review_cases_checkbox)
-        layout.addLayout(form)
+        controls_layout.addLayout(form)
+        layout.addWidget(controls_card)
 
+        role_card = _card()
+        role_layout = QtWidgets.QVBoxLayout(role_card)
+        role_layout.setContentsMargins(16, 16, 16, 16)
         self.role_matrix = QtWidgets.QTableWidget(0, 2)
         self.role_matrix.setHorizontalHeaderLabels(["User", "Roles"])
         self.role_matrix.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.role_matrix.verticalHeader().setVisible(False)
         self.role_matrix.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        layout.addWidget(QtWidgets.QLabel("Current role bindings"))
-        layout.addWidget(self.role_matrix, 1)
+        role_layout.addWidget(_section_caption("Current role bindings"))
+        role_layout.addWidget(self.role_matrix, 1)
+        layout.addWidget(role_card, 1)
 
         self.feedback_label = QtWidgets.QLabel("")
         self.feedback_label.setWordWrap(True)
+        self.feedback_label.setObjectName("feedbackNeutral")
         layout.addWidget(self.feedback_label)
 
         self.save_button = QtWidgets.QPushButton("Save governance settings")
+        self.save_button.setProperty("buttonRole", "primary")
         self.save_button.clicked.connect(self._emit_save)
         layout.addWidget(self.save_button)
 
@@ -336,8 +427,9 @@ class GovernanceConsoleView(QtWidgets.QWidget):
             self.role_matrix.setItem(row_index, 1, QtWidgets.QTableWidgetItem(row[1]))
 
     def show_feedback(self, message: str, *, ok: bool) -> None:
-        color = "#1f7a1f" if ok else "#9b1c1c"
-        self.feedback_label.setStyleSheet(f"color: {color}; font-weight: 600;")
+        self.feedback_label.setObjectName("feedbackSuccess" if ok else "feedbackError")
+        self.feedback_label.style().unpolish(self.feedback_label)
+        self.feedback_label.style().polish(self.feedback_label)
         self.feedback_label.setText(message)
 
     def _emit_save(self) -> None:
@@ -348,23 +440,30 @@ class AuditView(QtWidgets.QWidget):
     def __init__(self) -> None:
         super().__init__()
         layout = QtWidgets.QVBoxLayout(self)
-        layout.setSpacing(12)
+        layout.setSpacing(16)
         layout.addWidget(_section_title("Audit & Evidence"))
         self.summary_label = QtWidgets.QLabel("Recent high-value events are stored locally for traceability.")
         self.summary_label.setWordWrap(True)
+        self.summary_label.setObjectName("calloutInfo")
         layout.addWidget(self.summary_label)
+
+        table_card = _card()
+        table_layout = QtWidgets.QVBoxLayout(table_card)
+        table_layout.setContentsMargins(10, 10, 10, 10)
         self.audit_model = AuditTableModel()
         self.audit_table = QtWidgets.QTableView()
         self.audit_table.setModel(self.audit_model)
         self.audit_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.audit_table.verticalHeader().setVisible(False)
         self.audit_table.setAlternatingRowColors(True)
+        self.audit_table.setShowGrid(False)
         self.audit_table.clicked.connect(self._handle_clicked)
-        layout.addWidget(self.audit_table, 1)
+        table_layout.addWidget(self.audit_table, 1)
+        layout.addWidget(table_card, 1)
 
         self.detail_label = QtWidgets.QLabel("Select an audit event to inspect its payload.")
         self.detail_label.setWordWrap(True)
-        self.detail_label.setStyleSheet("background: white; border: 1px solid #d9e2ec; border-radius: 12px; padding: 12px;")
+        self.detail_label.setObjectName("detailPanel")
         layout.addWidget(self.detail_label)
 
     def refresh(self, rows: list[dict[str, object]]) -> None:
@@ -393,25 +492,33 @@ class HealthStatusView(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(16)
         layout.addWidget(_section_title("Health & Change Status"))
+        layout.addWidget(_section_caption("Track migration state, runtime checks, and local operational signals."))
 
         self.summary_label = QtWidgets.QLabel()
         self.summary_label.setWordWrap(True)
+        self.summary_label.setObjectName("calloutInfo")
         layout.addWidget(self.summary_label)
 
         self.migration_label = QtWidgets.QLabel()
         self.migration_label.setWordWrap(True)
+        self.migration_label.setObjectName("detailPanel")
         layout.addWidget(self.migration_label)
 
+        history_card = _card()
+        history_layout = QtWidgets.QVBoxLayout(history_card)
+        history_layout.setContentsMargins(16, 16, 16, 16)
         self.history_list = QtWidgets.QListWidget()
-        layout.addWidget(QtWidgets.QLabel("Recent health snapshots"))
-        layout.addWidget(self.history_list, 1)
+        history_layout.addWidget(_section_caption("Recent health snapshots"))
+        history_layout.addWidget(self.history_list, 1)
+        layout.addWidget(history_card, 1)
 
         self.detail_label = QtWidgets.QLabel()
         self.detail_label.setWordWrap(True)
-        self.detail_label.setStyleSheet("background: white; border: 1px solid #d9e2ec; border-radius: 12px; padding: 12px;")
+        self.detail_label.setObjectName("detailPanel")
         layout.addWidget(self.detail_label)
 
         self.run_button = QtWidgets.QPushButton("Run health check")
+        self.run_button.setProperty("buttonRole", "primary")
         self.run_button.clicked.connect(self.run_requested.emit)
         layout.addWidget(self.run_button)
 

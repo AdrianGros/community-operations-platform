@@ -28,14 +28,243 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setMinimumSize(1120, 720)
         self.setStyleSheet(
             """
-            QMainWindow, QWidget { background: #f4f7fb; color: #102a43; }
-            QListWidget { background: white; border: 1px solid #d9e2ec; border-radius: 12px; padding: 8px; }
-            QListWidget::item { padding: 10px 12px; border-radius: 8px; }
-            QListWidget::item:selected { background: #d9eaf7; color: #102a43; }
-            QTableView { background: white; border: 1px solid #d9e2ec; border-radius: 12px; gridline-color: #d9e2ec; }
-            QPushButton { background: #0f6cbd; color: white; border: none; border-radius: 8px; padding: 10px 14px; font-weight: 600; }
-            QPushButton:disabled { background: #9fb3c8; color: #f0f4f8; }
-            QComboBox, QCheckBox, QLabel, QListWidget, QTableWidget { font-size: 13px; }
+            QMainWindow, QWidget {
+                background: #edf2f7;
+                color: #16324f;
+                font-size: 13px;
+            }
+            QFrame#shellHeader {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #18324d, stop:1 #214e73);
+                border-radius: 24px;
+            }
+            QLabel#appTitle {
+                color: white;
+                font-size: 28px;
+                font-weight: 700;
+            }
+            QLabel#appSubtitle {
+                color: #d8e5f2;
+                font-size: 13px;
+            }
+            QLabel#sectionTitle {
+                color: #14324b;
+                font-size: 24px;
+                font-weight: 700;
+            }
+            QLabel#sectionCaption {
+                color: #5b7288;
+                font-size: 13px;
+            }
+            QFrame#card, QFrame#metricCard {
+                background: #ffffff;
+                border: 1px solid #d7e2ec;
+                border-radius: 18px;
+            }
+            QLabel#heroText {
+                color: #274863;
+                font-size: 14px;
+                line-height: 1.4;
+            }
+            QLabel#metricHeading {
+                color: #6b7f92;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+            }
+            QLabel#metricValue {
+                color: #14324b;
+                font-size: 30px;
+                font-weight: 700;
+            }
+            QLabel#inlineInfo, QLabel#calloutInfo, QLabel#calloutMuted, QLabel#detailPanel,
+            QLabel#feedbackNeutral, QLabel#feedbackSuccess, QLabel#feedbackError {
+                border-radius: 14px;
+                padding: 12px 14px;
+            }
+            QLabel#inlineInfo {
+                background: #ffffff;
+                border: 1px solid #d7e2ec;
+                color: #274863;
+            }
+            QLabel#calloutInfo {
+                background: #eef6fd;
+                border: 1px solid #c9ddf0;
+                color: #274863;
+            }
+            QLabel#calloutMuted {
+                background: #f8fafc;
+                border: 1px solid #dbe6ef;
+                color: #5d7185;
+            }
+            QLabel#detailPanel {
+                background: #f8fbfd;
+                border: 1px solid #d7e2ec;
+                color: #274863;
+            }
+            QLabel#feedbackNeutral {
+                background: #f8fafc;
+                border: 1px solid #dbe6ef;
+                color: #5d7185;
+            }
+            QLabel#feedbackSuccess {
+                background: #edf9f1;
+                border: 1px solid #b8e0c2;
+                color: #25683c;
+                font-weight: 600;
+            }
+            QLabel#feedbackError {
+                background: #fff1f1;
+                border: 1px solid #f1c4c4;
+                color: #9a3030;
+                font-weight: 600;
+            }
+            QLabel#detailTitle {
+                color: #14324b;
+                font-size: 22px;
+                font-weight: 700;
+            }
+            QLabel#detailSummary {
+                color: #2f4e68;
+                background: #f7fafc;
+                border: 1px solid #dbe6ef;
+                border-radius: 14px;
+                padding: 12px 14px;
+            }
+            QLabel#detailMeta {
+                color: #274863;
+                background: #ffffff;
+                border: 1px solid #d7e2ec;
+                border-radius: 14px;
+                padding: 14px;
+            }
+            QLabel#pill {
+                background: #e7f0fb;
+                color: #1a4e7a;
+                border: 1px solid #c9ddf0;
+                border-radius: 999px;
+                padding: 6px 12px;
+                font-weight: 700;
+            }
+            QLabel#pill[tone="claimed"], QLabel#pill[tone="approved"], QLabel#pill[tone="mitigated"] {
+                background: #e7f4ed;
+                color: #25683c;
+                border: 1px solid #b7dbbf;
+            }
+            QLabel#pill[tone="rejected"] {
+                background: #fff1f1;
+                color: #9a3030;
+                border: 1px solid #f1c4c4;
+            }
+            QLabel#pill[tone="closed"] {
+                background: #eef2f6;
+                color: #5d7185;
+                border: 1px solid #d7e2ec;
+            }
+            QLabel#pill[tone="open"], QLabel#pill[tone="in progress"] {
+                background: #eef6fd;
+                color: #1f5f99;
+                border: 1px solid #c9ddf0;
+            }
+            QLabel#pill[tone="risk-high"] {
+                background: #fff1f1;
+                color: #9a3030;
+                border: 1px solid #f1c4c4;
+            }
+            QLabel#pill[tone="risk-medium"] {
+                background: #fff7e8;
+                color: #9a5a00;
+                border: 1px solid #edd8a8;
+            }
+            QLabel#pill[tone="risk-low"] {
+                background: #edf9f1;
+                color: #25683c;
+                border: 1px solid #b8e0c2;
+            }
+            QListWidget {
+                background: #ffffff;
+                border: 1px solid #d7e2ec;
+                border-radius: 18px;
+                padding: 12px;
+                outline: none;
+            }
+            QListWidget::item {
+                padding: 12px 14px;
+                border-radius: 12px;
+                margin: 2px 0;
+            }
+            QListWidget::item:selected {
+                background: #dbe9f6;
+                color: #14324b;
+                font-weight: 600;
+            }
+            QTableView, QTableWidget {
+                background: #ffffff;
+                border: none;
+                border-radius: 14px;
+                gridline-color: #e6edf3;
+                selection-background-color: #e2eef9;
+                selection-color: #14324b;
+                alternate-background-color: #f8fbfd;
+            }
+            QHeaderView::section {
+                background: transparent;
+                color: #617587;
+                border: none;
+                border-bottom: 1px solid #dbe6ef;
+                padding: 10px 8px;
+                font-weight: 700;
+            }
+            QComboBox {
+                background: #ffffff;
+                border: 1px solid #d7e2ec;
+                border-radius: 10px;
+                padding: 8px 10px;
+                min-width: 160px;
+            }
+            QCheckBox {
+                spacing: 8px;
+            }
+            QPushButton {
+                border: none;
+                border-radius: 10px;
+                padding: 10px 14px;
+                font-weight: 600;
+                background: #286ea8;
+                color: white;
+            }
+            QPushButton[buttonRole="primary"] {
+                background: #1f6fb2;
+                color: white;
+            }
+            QPushButton[buttonRole="secondary"] {
+                background: #dfeaf4;
+                color: #16324f;
+            }
+            QPushButton[buttonRole="warning"] {
+                background: #f0b347;
+                color: #4c3200;
+            }
+            QPushButton[buttonRole="danger"] {
+                background: #c94f4f;
+                color: white;
+            }
+            QPushButton:hover {
+                background: #155e98;
+            }
+            QPushButton[buttonRole="secondary"]:hover {
+                background: #cfdeeb;
+            }
+            QPushButton[buttonRole="warning"]:hover {
+                background: #e0a53d;
+            }
+            QPushButton[buttonRole="danger"]:hover {
+                background: #b84343;
+            }
+            QPushButton:disabled {
+                background: #b8c8d8;
+                color: #eef4f8;
+            }
             """
         )
 
@@ -45,21 +274,24 @@ class MainWindow(QtWidgets.QMainWindow):
         root_layout.setSpacing(16)
 
         header = QtWidgets.QFrame()
-        header.setStyleSheet("QFrame { background: #102a43; border-radius: 18px; } QLabel { color: white; }")
+        header.setObjectName("shellHeader")
         header_layout = QtWidgets.QHBoxLayout(header)
+        header_layout.setContentsMargins(18, 16, 18, 16)
+        header_layout.setSpacing(18)
         title_layout = QtWidgets.QVBoxLayout()
         title = QtWidgets.QLabel("Governance Showcase App")
-        title.setStyleSheet("font-size: 24px; font-weight: 700;")
+        title.setObjectName("appTitle")
         subtitle = QtWidgets.QLabel(
-            "Controlled processing, auditability, governance guardrails, and runtime health in one local desktop tool."
+            "Controlled processing, review accountability, mitigation tracking, and runtime health in one local desktop tool."
         )
         subtitle.setWordWrap(True)
-        subtitle.setStyleSheet("color: #d9e2ec; font-size: 13px;")
+        subtitle.setObjectName("appSubtitle")
         title_layout.addWidget(title)
         title_layout.addWidget(subtitle)
         header_layout.addLayout(title_layout, 1)
 
         controls_layout = QtWidgets.QHBoxLayout()
+        controls_layout.setSpacing(10)
         controls_layout.addWidget(QtWidgets.QLabel("Active user"))
         self.user_combo = QtWidgets.QComboBox()
         self.user_combo.currentIndexChanged.connect(self._handle_user_change)
@@ -83,7 +315,7 @@ class MainWindow(QtWidgets.QMainWindow):
             ]
         )
         self.nav_list.currentRowChanged.connect(self._handle_nav_change)
-        self.nav_list.setFixedWidth(240)
+        self.nav_list.setFixedWidth(250)
         body_layout.addWidget(self.nav_list)
 
         self.stack = QtWidgets.QStackedWidget()
@@ -141,14 +373,16 @@ class MainWindow(QtWidgets.QMainWindow):
         roles = ", ".join(self.app_context.services.session_service.get_current_roles()) or "No roles"
         policy = self.app_context.services.governance_service.get_policy()
         self.role_badge.setText(f"Roles: {roles}")
-        self.role_badge.setStyleSheet("background: #d9eaf7; color: #102a43; padding: 8px 12px; border-radius: 999px;")
+        self.role_badge.setObjectName("pill")
         review_enabled = policy.feature_flags.get("review_cases", True)
         self.policy_badge.setText(
             f"Read-only: {'on' if policy.read_only_enabled else 'off'} | Review Cases: {'on' if review_enabled else 'off'}"
         )
-        badge_color = "#f0b429" if policy.read_only_enabled else "#2f855a"
+        self.policy_badge.setObjectName("pill")
         self.policy_badge.setStyleSheet(
-            f"background: {badge_color}; color: white; padding: 8px 12px; border-radius: 999px;"
+            "background: #f0b347; color: #4c3200; border: 1px solid #e0c27a; border-radius: 999px; padding: 8px 12px; font-weight: 700;"
+            if policy.read_only_enabled
+            else "background: #dff2e5; color: #25683c; border: 1px solid #b7dbbf; border-radius: 999px; padding: 8px 12px; font-weight: 700;"
         )
         self.setWindowTitle(f"Governance Showcase App - {current_user.display_name}")
 
