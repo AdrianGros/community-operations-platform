@@ -1,14 +1,9 @@
 # Project Context
 
-The source project behind this extract was built for day-to-day community operations on Discord.
+This root-level file is now transitional.
 
-The interesting part for business-facing engineering roles is not the chat surface itself. It is the mix of runtime governance, operational safety, background processing, and persistence discipline:
+The canonical project context document lives in:
 
-- slash-command driven workflows with service boundaries
-- tenant-scoped runtime configuration
-- SQL-first schema evolution
-- worker-style reminder delivery
-- guardrails for permission drift and read-only operation
-- health and failure signaling that help with ongoing support
+- [`projects/community-operations-platform/overview/project-context.md`](./projects/community-operations-platform/overview/project-context.md)
 
-This extract avoids copying the whole project tree. A smaller set of strong artifacts is easier to review and safer to publish.
+Use the project-space version for review and future edits.
