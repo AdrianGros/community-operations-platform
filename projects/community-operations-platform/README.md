@@ -5,7 +5,7 @@ This folder is the canonical reviewer entrypoint for the `community-operations-p
 The repository is currently in migration:
 
 - the reviewer-facing project structure is now defined here
-- the runnable showcase application still remains in the legacy root layout for stability
+- the runnable showcase application and supporting assets now live inside this project folder
 
 ## What this project shows
 
@@ -31,12 +31,30 @@ The project-level skeleton is active, but the underlying legacy materials are st
 For now:
 
 - project narrative is becoming canonical here
-- runnable assets still live at repository root:
+- project-local implementation assets live here:
   - `app/`
+  - `bot/`
+  - `config/`
   - `db/`
   - `tests/`
   - `requirements.txt`
   - `pytest.ini`
+
+## Run
+
+From this folder, the project can be started with:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m app.main
+```
+
+Tests:
+
+```bash
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m pytest tests
+```
 
 ## Reviewer guidance
 

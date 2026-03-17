@@ -14,14 +14,17 @@ community-operations-platform-showcase/
   portfolio/
   projects/
     community-operations-platform/
+      app/
+      bot/
+      config/
+      db/
+      tests/
+      requirements.txt
+      pytest.ini
       overview/
       extracts/
       evidence/
       roadmap/
-  app/                # legacy during migration
-  db/                 # legacy during migration
-  tests/              # legacy during migration
-  evidence/           # legacy during migration
 ```
 
 ## Structural rules
@@ -55,6 +58,7 @@ Every showcased project gets one canonical folder here. Over time, reviewers sho
 
 Use a stable split:
 
+- project-local runtime and source assets
 - `overview/` for project narrative, architecture summary, and reviewer entry docs
 - `extracts/` for curated code or non-runnable source packages
 - `evidence/` for proof artifacts and relevance notes
@@ -62,11 +66,11 @@ Use a stable split:
 
 ## Migration strategy
 
-Do not move everything at once.
+Use staged migration:
 
 1. Establish the canonical structure.
 2. Route new documentation into canonical folders immediately.
-3. Migrate one artifact group at a time.
+3. Migrate project-local runtime and source assets into the project folder when the reviewer path is stable.
 4. Remove or archive legacy root paths only after links, runs, and review flow are stable.
 
 ## Single source of truth rule

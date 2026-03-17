@@ -43,7 +43,7 @@ Reason:
 
 ## Acceptable transitional state
 
-- runnable app assets still remain at root
+- project-local runtime and source assets now live inside the project folder
 - extract artifacts are still referenced in place rather than fully mirrored or relocated
 - root transitional stubs still exist for some narrative documents
 

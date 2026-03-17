@@ -72,6 +72,13 @@ For `projects/community-operations-platform/`, the canonical structure should be
 ```text
 projects/community-operations-platform/
   README.md
+  app/
+  bot/
+  config/
+  db/
+  tests/
+  requirements.txt
+  pytest.ini
   overview/
   extracts/
   evidence/
@@ -191,26 +198,27 @@ Decision:
 
 This avoids breaking the current technical structure too early.
 
-## Runnable app assets
+## Runtime and source assets
 
 Current:
 
-- `app/`
-- `db/`
-- `tests/`
-- `requirements.txt`
-- `pytest.ini`
-- `config/`
+- `projects/community-operations-platform/app/`
+- `projects/community-operations-platform/bot/`
+- `projects/community-operations-platform/db/`
+- `projects/community-operations-platform/tests/`
+- `projects/community-operations-platform/requirements.txt`
+- `projects/community-operations-platform/pytest.ini`
+- `projects/community-operations-platform/config/`
 
 Target:
 
-- remain legacy-root during early migration milestones
-- be referenced from the project README and roadmap
-- physical move is deferred until the reviewer-facing narrative and evidence layers are stable
+- live inside the project folder
+- be referenced from the project README, extracts, and roadmap
+- stay colocated with the project unless a later packaging reason clearly justifies another split
 
 Decision:
 
-- do not physically move runnable app assets before the repository skeleton is fully populated and the backup milestone is complete
+- project-local runtime and source assets now belong inside the project folder instead of the repository root
 
 ## Migration rules
 
@@ -269,9 +277,9 @@ Every migration step should reduce root-level ambiguity, not add new root-level 
 - build project-level extract navigation
 - decide whether extract files are moved, mirrored, or referenced
 
-## Phase C - Runnable asset decision
+## Phase C - Runtime and source asset colocation
 
-- after backup and stable navigation, decide whether the runnable app stays in legacy-root form or moves physically
+- after backup and stable navigation, colocate the project-local runtime and source assets inside the project folder
 
 ## Phase D - Root cleanup
 

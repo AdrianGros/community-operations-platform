@@ -35,18 +35,19 @@ This document translates the current repository artifact families into their pla
 
 ## Runnable app assets
 
-- `app/` -> deferred migration decision
-- `db/` -> deferred migration decision
-- `tests/` -> deferred migration decision
-- `requirements.txt` -> deferred migration decision
-- `pytest.ini` -> deferred migration decision
-- `config/` -> deferred migration decision
+- `app/` -> moved into `projects/community-operations-platform/`
+- `bot/` -> moved into `projects/community-operations-platform/`
+- `db/` -> moved into `projects/community-operations-platform/`
+- `tests/` -> moved into `projects/community-operations-platform/`
+- `requirements.txt` -> moved into `projects/community-operations-platform/`
+- `pytest.ini` -> moved into `projects/community-operations-platform/`
+- `config/` -> moved into `projects/community-operations-platform/`
 
 ## Migration order recommendation
 
 1. populate project-level narrative and evidence first
 2. establish extract navigation second
-3. evaluate runnable asset relocation only after backup and stable navigation
+3. colocate project-local runtime assets inside the project folder
 4. clean up root-level duplicates last
 
 ## Guardrails

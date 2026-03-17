@@ -8,14 +8,15 @@ The canonical project entrypoint is now [`projects/community-operations-platform
 
 ## Current state
 
-Today, the runnable governance showcase app still lives in the legacy root layout:
+The repository root is now primarily for:
 
-- [`app`](./app)
-- [`db`](./db)
-- [`tests`](./tests)
-- [`evidence`](./evidence)
+- repository identity
+- reviewer navigation
+- method and planning documentation
+- portfolio positioning
+- project routing
 
-That runtime layout remains intentionally untouched for now so the existing local workflow does not break during curation.
+The project-specific implementation assets now live inside [`projects/community-operations-platform`](./projects/community-operations-platform).
 
 ## New canonical structure
 
@@ -52,11 +53,10 @@ The preferred reviewer path is now:
 2. [`projects/community-operations-platform`](./projects/community-operations-platform/)
 3. one of `overview`, `extracts`, `evidence`, or `roadmap`
 
-## Legacy local run
-
-Until the migration milestone moves the runnable app into its new curated project folder, the existing local run path stays the same:
+## Run
 
 ```bash
+cd projects/community-operations-platform
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python -m app.main
@@ -65,5 +65,6 @@ python3 -m venv .venv
 Tests:
 
 ```bash
+cd projects/community-operations-platform
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m pytest tests
 ```
